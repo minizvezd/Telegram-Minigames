@@ -3,7 +3,7 @@ from telegram import Update, Bot, KeyboardButton, ReplyKeyboardMarkup, WebAppInf
 from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes
 
 TOKEN = "7983006290:AAGGq-0BtQLKAncpMJZNKnYOJj5sgFpVtZw"
-WEBAPP_URL = "https://minizvezd.github.io/Telegram-Minigames/"  # адрес, где хостится ваше Flask-приложение
+WEBAPP_URL = "https://telegram-minigames.vercel.app/"  # адрес, где хостится ваше Flask-приложение
 
 logging.basicConfig(level=logging.INFO)
 

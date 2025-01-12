@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Сапёр (демо)</title>
+  <style>
+    body { text-align: center; }
+    #board {
+      display: grid;
+      grid-template-columns: repeat(8, 30px);
+      grid-gap: 2px;
+      margin: 0 auto;
+      width: 240px;
+    }
+    .cell {
+      width: 30px;
+      height: 30px;
+      background: #ccc;
+      text-align: center;
+      line-height: 30px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>Сапёр (демо)</h1>
+  <div id="board"></div>
+
+  <script>
+    const boardElem = document.getElementById('board');
+    const size = 8;
+    const mineCount = 10;
+    let mines = [];
+
+    // Генерируем поле (упрощённая версия)
+    function initBoard() {
+      // Расставляем мины случайным образом
+      mines = Array(size*size).fill(false);
+      let count = 0;
+      while(count < mineCount){
+        let index = Math.floor(Math.random()*size*size);
+        if(!mines[index]){
+          mines[index] = true;
+          count++;
+        }
+      }
+      // Рендер ячеек
+      for(let i=0; i<size*size; i++){
+        const cell = document.createElement('div');
+        cell.className = 'cell';
+        cell.dataset.index = i;
+        cell.addEventListener('click', onCellClick);
+        boardElem.appendChild(cell);
+      }
+    }
+
+    function onCellClick(e) {
+      const index = e.target.dataset.index;
+      if(mines[index]) {
+        e.target.style.background = "red";
+        e.target.textContent = "X";
+        alert("Мина! Игра окончена.");
+      } else {
+        e.target.style.background = "#fff";
+        e.target.textContent = "";
+      }
+    }
+
+    initBoard();
+  </script>
+</body>
+</html>

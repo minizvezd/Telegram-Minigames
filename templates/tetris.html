@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Тетрис</title>
+  <style>
+    body { text-align: center; }
+    #gameArea {
+      width: 200px;
+      height: 400px;
+      background: #eee;
+      margin: 0 auto;
+      position: relative;
+    }
+  </style>
+</head>
+<body>
+  <h1>Тетрис</h1>
+  <div id="gameArea"></div>
+
+  <script>
+    // Упрощённая логика
+    const gameArea = document.getElementById("gameArea");
+
+    // Заготовка — динамическая отрисовка фигур
+    // В реальном проекте нужно прописать логику падения фигур, сетку и т.п.
+    function spawnBlock() {
+      const block = document.createElement("div");
+      block.style.width = "20px";
+      block.style.height = "20px";
+      block.style.backgroundColor = "blue";
+      block.style.position = "absolute";
+      block.style.left = "90px";
+      block.style.top = "0";
+      gameArea.appendChild(block);
+      
+      let topPos = 0;
+      let fallInterval = setInterval(() => {
+        topPos += 2;
+        block.style.top = topPos + "px";
+        if(topPos >= 380){ // условие "приземления"
+          clearInterval(fallInterval);
+        }
+      }, 60);
+    }
+
+    setInterval(spawnBlock, 2000);
+  </script>
+</body>
+</html>

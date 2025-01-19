@@ -94,7 +94,7 @@
 </head>
 <body>
   <header>
-    <a class="back-button" href="index.html">Назад</a>
+    <a class="back-button" href="./index.html">Назад</a>
     <h1>Тетрис</h1>
   </header>
 
@@ -138,7 +138,7 @@
     ];
     const COLORS = ["cyan","yellow","purple","green","red","blue","orange"];
 
-    let board = createMatrix(ROWS, COLS);
+    let board = [];
     let score = 0;
 
     let currentPiece = null;
@@ -151,6 +151,7 @@
     let lastTime = 0;
 
     let isGameOver = false;
+    let animationFrameId = null;
 
     // Свайпы
     let touchStartX = 0;
@@ -172,9 +173,10 @@
       currentY = 0;
       currentX = (COLS/2|0) - (currentPiece[0].length/2|0);
 
-      // Если сразу коллизия — Game Over
+      // Проверяем коллизию сразу
       if (collide(board, currentPiece, currentX, currentY)) {
-        gameOver();
+        // Game Over
+        gameOverFunc();
       }
     }
 
@@ -226,7 +228,7 @@
         }
       }
       if(lines > 0){
-        score += lines*10;
+        score += lines*10; // +10 за линию
       }
     }
 
@@ -234,6 +236,8 @@
       currentY++;
       if(collide(board, currentPiece, currentX, currentY)){
         currentY--;
+        // Фигура «встала» => +1 очко
+        score += 1; 
         merge(board, currentPiece, currentX, currentY, currentColor);
         lineClear();
         spawnPiece();
@@ -247,7 +251,7 @@
     }
 
     function update(time=0) {
-      if(isGameOver) return;
+      if(isGameOver) return; 
       const delta = time - lastTime;
       lastTime = time;
 
@@ -257,7 +261,7 @@
       }
 
       draw();
-      requestAnimationFrame(update);
+      animationFrameId = requestAnimationFrame(update);
     }
 
     function draw() {
@@ -293,19 +297,27 @@
       ctx.strokeRect(x*BLOCK_SIZE, y*BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
     }
 
-    function gameOver() {
+    function gameOverFunc() {
       isGameOver = true;
+      cancelAnimationFrame(animationFrameId);
       document.getElementById("finalScore").textContent = `Игра окончена! Ваш счёт: ${score}`;
       document.getElementById("gameOver").style.display = "block";
     }
 
     function restartGame() {
+      // Сбрасываем всё
       board = createMatrix(ROWS, COLS);
       score = 0;
       isGameOver = false;
+      dropCounter = 0;
+      lastTime = 0;
       document.getElementById("gameOver").style.display = "none";
-      spawnPiece();
       updateScore();
+
+      spawnPiece();
+      // Снова запускаем цикл
+      if(animationFrameId) cancelAnimationFrame(animationFrameId);
+      animationFrameId = requestAnimationFrame(update);
     }
 
     // Управление
@@ -368,7 +380,6 @@
 
     // Старт
     restartGame();
-    requestAnimationFrame(update);
   </script>
 </body>
 </html>

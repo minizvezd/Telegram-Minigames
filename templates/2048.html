@@ -4,15 +4,18 @@
   <meta charset="UTF-8">
   <title>2048</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+
   <style>
-    body {
-      margin:0; 
+    html, body {
+      margin:0;
       padding:0;
       background:#faf8ef;
       font-family:sans-serif;
       display:flex;
       flex-direction:column;
       align-items:center;
+      overscroll-behavior:none;
+      -webkit-overflow-scrolling:none;
       -webkit-touch-callout:none;
       -webkit-user-select:none;
       -moz-user-select:none;
@@ -35,7 +38,7 @@
       text-decoration:none;
       background:#333;
       color:#fff;
-      padding:6px 12px;
+      padding:6px12px;
       border-radius:4px;
       font-size:14px;
     }
@@ -135,14 +138,17 @@
   </style>
 </head>
 <body>
+
   <header>
     <a class="back-button" href="/">Назад</a>
     <h1>2048</h1>
   </header>
+
   <div class="instructions">
-    Объединяйте плитки с одинаковыми числами, чтобы получать более крупные.
+    Объединяйте плитки с одинаковыми числами, чтобы получить более крупные. 
     <br>Управление: стрелки / WASD, на телефоне — свайпы.
   </div>
+
   <div id="score">Очки: <span id="scoreVal">0</span></div>
   <div style="position:relative;">
     <div id="board"></div>
@@ -153,6 +159,10 @@
   </div>
 
   <script>
+    // Блокируем скролл, выделения
+    document.addEventListener("touchmove", e=> e.preventDefault(), {passive:false});
+    document.addEventListener("selectstart", e=> e.preventDefault());
+
     const size=4;
     let board=[];
     let score=0;
@@ -162,8 +172,7 @@
     const gameOverDiv=document.getElementById("gameOver");
     const finalMsg=document.getElementById("finalMsg");
 
-    let touchStartX=0;
-    let touchStartY=0;
+    let touchStartX=0,touchStartY=0;
     const SWIPE_THRESHOLD=30;
 
     function init(){
@@ -189,7 +198,7 @@
           if(val>0){
             cell.textContent=val;
             cell.dataset.value=val;
-          } else{
+          } else {
             cell.textContent="";
             cell.dataset.value=0;
           }
@@ -202,12 +211,14 @@
       let empty=[];
       for(let r=0;r<size;r++){
         for(let c=0;c<size;c++){
-          if(board[r][c]===0) empty.push({r,c});
+          if(board[r][c]===0){
+            empty.push({r,c});
+          }
         }
       }
       if(empty.length===0)return;
       let spot=empty[Math.floor(Math.random()*empty.length)];
-      board[spot.r][spot.c]=Math.random()<0.9?2:4;
+      board[spot.r][spot.c]=(Math.random()<0.9)?2:4;
     }
 
     function updateScore(){
@@ -308,7 +319,6 @@
       }
       return arr;
     }
-
     function mergeRow(row){
       for(let i=0;i<size-1;i++){
         if(row[i]!==0 && row[i]===row[i+1]){
@@ -320,7 +330,6 @@
       return row;
     }
 
-    // свайпы
     boardElem.addEventListener("touchstart", e=>{
       let t=e.touches[0];
       touchStartX=t.clientX;
@@ -337,7 +346,7 @@
         } else if(dx< -SWIPE_THRESHOLD){
           moved=moveLeft();
         }
-      } else{
+      } else {
         if(dy>SWIPE_THRESHOLD){
           moved=moveDown();
         } else if(dy< -SWIPE_THRESHOLD){
@@ -350,9 +359,9 @@
     function checkGameOver(){
       for(let r=0;r<size;r++){
         for(let c=0;c<size;c++){
-          if(board[r][c]===0) return; 
-          if(c<size-1 && board[r][c]===board[r][c+1]) return;
-          if(r<size-1 && board[r][c]===board[r+1][c]) return;
+          if(board[r][c]===0)return;
+          if(c<size-1 && board[r][c]===board[r][c+1])return;
+          if(r<size-1 && board[r][c]===board[r+1][c])return;
         }
       }
       gameOverDiv.style.display="block";
@@ -365,5 +374,6 @@
 
     init();
   </script>
+
 </body>
 </html>

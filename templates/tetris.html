@@ -15,7 +15,12 @@
       display: flex;
       flex-direction: column;
       align-items: center;
-      overflow: hidden;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+      touch-action: none;
     }
     header {
       width: 100%;
@@ -121,16 +126,265 @@
   </div>
 
   <script>
-    /* ... Здесь тот же код Тетриса, что и раньше, 
-       только добавлен meta viewport в <head> 
-       Ничего функционально не меняем ...
-    */
+    const canvas = document.getElementById("tetrisCanvas");
+    const ctx = canvas.getContext("2d");
 
-    /* СОДЕРЖИМОЕ КАК В ПРЕДЫДУЩЕМ ВАРИАНТЕ, 
-       см. предыдущий ответ/код, 
-       с +1 очком за поставленную фигуру, +10 за линию,
-       свайпы, и т.д. 
-    */
+    const COLS = 10;
+    const ROWS = 20;
+    const BLOCK_SIZE = 20;
+
+    canvas.width = COLS * BLOCK_SIZE;
+    canvas.height = ROWS * BLOCK_SIZE;
+
+    const SHAPES = [
+      [[1,1,1],[0,1,0]],  // T
+      [[1,1],[1,1]],      // O
+      [[1,0,0],[1,1,1]],  // L
+      [[0,0,1],[1,1,1]],  // J
+      [[0,1,1],[1,1,0]],  // S
+      [[1,1,0],[0,1,1]],  // Z
+      [[1,1,1,1]]         // I
+    ];
+    const COLORS = ["cyan","yellow","purple","green","red","blue","orange"];
+
+    let board = [];
+    let score = 0;
+
+    let currentPiece = null;
+    let currentColor = null;
+    let currentX = 0;
+    let currentY = 0;
+
+    let dropInterval = 700;
+    let dropCounter = 0;
+    let lastTime = 0;
+
+    let isGameOver = false;
+    let animationFrameId = null;
+
+    // свайпы
+    let touchStartX = 0;
+    let touchStartY = 0;
+    const SWIPE_THRESHOLD = 30;
+
+    function createMatrix(rows, cols) {
+      let matrix = [];
+      for (let r=0; r<rows; r++){
+        matrix.push(new Array(cols).fill(0));
+      }
+      return matrix;
+    }
+
+    function spawnPiece() {
+      let index = Math.floor(Math.random()*SHAPES.length);
+      currentPiece = SHAPES[index].map(row => [...row]);
+      currentColor = COLORS[index];
+      currentY = 0;
+      currentX = (COLS/2|0) - (currentPiece[0].length/2|0);
+
+      if(collide(board, currentPiece, currentX, currentY)){
+        gameOverFunc();
+      }
+    }
+
+    function collide(board, piece, offX, offY){
+      for(let r=0; r<piece.length; r++){
+        for(let c=0; c<piece[r].length; c++){
+          if(piece[r][c] !== 0){
+            let nr = offY + r;
+            let nc = offX + c;
+            if(nr<0 || nr>=ROWS || nc<0 || nc>=COLS || board[nr][nc]!==0){
+              return true;
+            }
+          }
+        }
+      }
+      return false;
+    }
+
+    function merge(board, piece, offX, offY, color){
+      for(let r=0; r<piece.length; r++){
+        for(let c=0; c<piece[r].length; c++){
+          if(piece[r][c] !== 0){
+            board[offY+r][offX+c] = color;
+          }
+        }
+      }
+    }
+
+    function rotate(matrix){
+      let result = [];
+      for(let r=0; r<matrix[0].length; r++){
+        let row = [];
+        for(let c=matrix.length-1; c>=0; c--){
+          row.push(matrix[c][r]);
+        }
+        result.push(row);
+      }
+      return result;
+    }
+
+    function lineClear(){
+      let lines = 0;
+      for(let r=ROWS-1; r>=0; r--){
+        if(board[r].every(cell => cell!==0)){
+          board.splice(r,1);
+          board.unshift(new Array(COLS).fill(0));
+          lines++;
+          r++;
+        }
+      }
+      if(lines>0){
+        score += lines*10;
+      }
+    }
+
+    function drop(){
+      currentY++;
+      if(collide(board, currentPiece, currentX, currentY)){
+        currentY--;
+        // фигура «встала»
+        score += 1; // +1 очко за поставленную
+        merge(board, currentPiece, currentX, currentY, currentColor);
+        lineClear();
+        spawnPiece();
+      }
+      dropCounter=0;
+      updateScore();
+    }
+
+    function updateScore(){
+      document.getElementById("score").textContent = score;
+    }
+
+    function update(time=0){
+      if(isGameOver) return;
+      let delta = time - lastTime;
+      lastTime = time;
+      dropCounter+=delta;
+      if(dropCounter>dropInterval){
+        drop();
+      }
+
+      draw();
+      animationFrameId = requestAnimationFrame(update);
+    }
+
+    function draw(){
+      ctx.fillStyle = "#111";
+      ctx.fillRect(0,0,canvas.width, canvas.height);
+
+      // поле
+      for(let r=0; r<ROWS; r++){
+        for(let c=0; c<COLS; c++){
+          let val = board[r][c];
+          if(val!==0){
+            drawBlock(c,r,val);
+          }
+        }
+      }
+      // фигура
+      if(currentPiece){
+        for(let r=0; r<currentPiece.length; r++){
+          for(let c=0; c<currentPiece[r].length; c++){
+            if(currentPiece[r][c]!==0){
+              drawBlock(currentX+c, currentY+r, currentColor);
+            }
+          }
+        }
+      }
+    }
+
+    function drawBlock(x,y,color){
+      ctx.fillStyle = color;
+      ctx.fillRect(x*BLOCK_SIZE,y*BLOCK_SIZE,BLOCK_SIZE,BLOCK_SIZE);
+      ctx.strokeStyle="#333";
+      ctx.strokeRect(x*BLOCK_SIZE,y*BLOCK_SIZE,BLOCK_SIZE,BLOCK_SIZE);
+    }
+
+    function gameOverFunc(){
+      isGameOver=true;
+      cancelAnimationFrame(animationFrameId);
+      document.getElementById("finalScore").textContent=`Игра окончена! Ваш счёт: ${score}`;
+      document.getElementById("gameOver").style.display="block";
+    }
+
+    function restartGame(){
+      board = createMatrix(ROWS, COLS);
+      score = 0;
+      isGameOver = false;
+      dropCounter=0; 
+      lastTime=0;
+      document.getElementById("gameOver").style.display="none";
+      updateScore();
+      spawnPiece();
+      if(animationFrameId) cancelAnimationFrame(animationFrameId);
+      animationFrameId = requestAnimationFrame(update);
+    }
+
+    // управление
+    document.addEventListener("keydown", e=>{
+      if(isGameOver) return;
+      switch(e.key){
+        case "ArrowLeft": case "a": case "A":
+          if(!collide(board, currentPiece, currentX-1, currentY)){
+            currentX--;
+          }
+          break;
+        case "ArrowRight": case "d": case "D":
+          if(!collide(board, currentPiece, currentX+1, currentY)){
+            currentX++;
+          }
+          break;
+        case "ArrowDown": case "s": case "S":
+          drop();
+          break;
+        case "ArrowUp": case "w": case "W":
+          let rotated= rotate(currentPiece);
+          if(!collide(board, rotated, currentX, currentY)){
+            currentPiece=rotated;
+          }
+          break;
+      }
+    });
+
+    // свайпы
+    canvas.addEventListener("touchstart", e=>{
+      let t=e.touches[0];
+      touchStartX=t.clientX;
+      touchStartY=t.clientY;
+    });
+    canvas.addEventListener("touchend", e=>{
+      if(isGameOver) return;
+      let t=e.changedTouches[0];
+      let dx=t.clientX-touchStartX;
+      let dy=t.clientY-touchStartY;
+      if(Math.abs(dx)>Math.abs(dy)){
+        // влево/вправо
+        if(dx>SWIPE_THRESHOLD){
+          // вправо
+          if(!collide(board, currentPiece, currentX+1, currentY)) currentX++;
+        } else if(dx< -SWIPE_THRESHOLD){
+          // влево
+          if(!collide(board, currentPiece, currentX-1, currentY)) currentX--;
+        }
+      } else {
+        // вверх/вниз
+        if(dy>SWIPE_THRESHOLD){
+          // вниз
+          drop();
+        } else if(dy< -SWIPE_THRESHOLD){
+          // вверх => поворот
+          let rotated=rotate(currentPiece);
+          if(!collide(board, rotated, currentX, currentY)){
+            currentPiece=rotated;
+          }
+        }
+      }
+    });
+
+    // запуск
+    restartGame();
   </script>
 </body>
 </html>

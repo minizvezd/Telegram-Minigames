@@ -4,9 +4,7 @@
   <meta charset="UTF-8">
   <title>Змейка</title>
   <style>
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
     body {
       margin: 0; 
       padding: 0;
@@ -32,7 +30,7 @@
       text-decoration: none;
       background: #333;
       color: #fff;
-      padding: 5px 10px;
+      padding: 6px 12px;
       border-radius: 4px;
       font-size: 14px;
       transition: background 0.3s;
@@ -44,12 +42,20 @@
       margin: 0;
       font-size: 20px;
     }
+    .instructions {
+      margin: 10px;
+      font-size: 14px;
+      background: #333;
+      padding: 6px 10px;
+      border-radius: 4px;
+      line-height: 1.4;
+    }
     #score {
-      margin-top: 10px;
+      margin: 8px 0;
     }
     #gameContainer {
       position: relative;
-      margin: 20px auto;
+      margin: 10px auto;
     }
     canvas {
       background: #111;
@@ -58,7 +64,7 @@
     }
     #gameOver {
       position: absolute;
-      top: 40%;
+      top: 30%;
       left: 50%;
       transform: translate(-50%, -50%);
       background: rgba(0,0,0,0.8);
@@ -81,14 +87,6 @@
     #gameOver button:hover {
       background: #d55;
     }
-    /* Анимация для рендера (задержка змейки/яблока) */
-    .fade-in {
-      animation: fadeIn 0.3s ease forwards;
-    }
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to   { opacity: 1; }
-    }
     @media(max-width: 600px){
       canvas {
         width: 300px;
@@ -103,12 +101,17 @@
     <h1>Змейка</h1>
   </header>
 
+  <div class="instructions">
+    Управление: Стрелки или W/A/S/D. На телефоне — свайпы в сторону хода.<br>
+    Цель: съесть как можно больше яблок. Столкновение со стеной или хвостом — проигрыш.
+  </div>
+
   <div id="score">Очки: <span id="scoreValue">0</span></div>
   <div id="gameContainer">
     <canvas id="gameCanvas" width="400" height="400"></canvas>
     <div id="gameOver">
-      <h2>Игра окончена!</h2>
-      <button onclick="restartGame()">Заново</button>
+      <h2 id="finalMessage"></h2>
+      <button onclick="restartGame()">Играть снова</button>
     </div>
   </div>
 
@@ -118,20 +121,26 @@
 
     const scoreValue = document.getElementById("scoreValue");
     const gameOverDiv = document.getElementById("gameOver");
+    const finalMessage = document.getElementById("finalMessage");
 
     const gridSize = 20;
     let snake = [{x: 10, y: 10}];
-    let vx = 1, vy = 0;
+    let vx = 0, vy = 0;
     let food = {x: 5, y: 5};
     let score = 0;
 
-    let interval = 200; // начальный интервал (медленнее)
+    let interval = 200; 
     let gameInterval = null;
     let isGameOver = false;
 
+    // Для свайпов
+    let touchStartX = 0;
+    let touchStartY = 0;
+    const SWIPE_THRESHOLD = 30; // минимальное смещение для распознавания свайпа
+
     function startGame() {
       snake = [{x: 10, y: 10}];
-      vx = 1; 
+      vx = 0; 
       vy = 0;
       score = 0;
       interval = 200;
@@ -147,19 +156,16 @@
 
     function gameLoop() {
       let head = { x: snake[0].x + vx, y: snake[0].y + vy };
-      
-      // Зацикливание
-      if (head.x < 0) head.x = canvas.width/gridSize - 1;
-      if (head.x >= canvas.width/gridSize) head.x = 0;
-      if (head.y < 0) head.y = canvas.height/gridSize - 1;
-      if (head.y >= canvas.height/gridSize) head.y = 0;
+
+      // Если вышли за границу — Game Over
+      if (head.x < 0 || head.x >= canvas.width/gridSize || head.y < 0 || head.y >= canvas.height/gridSize) {
+        return gameOver();
+      }
 
       // Проверка на столкновение с хвостом
       for (let i = 0; i < snake.length; i++) {
         if (snake[i].x === head.x && snake[i].y === head.y) {
-          // Game Over
-          gameOver();
-          return;
+          return gameOver();
         }
       }
 
@@ -171,8 +177,8 @@
         score++;
         updateScore();
 
-        // Ускоряемся на чуть-чуть после каждого яблока
-        interval = Math.max(50, interval - 10); 
+        // Немного ускоряем
+        interval = Math.max(50, interval - 5);
         clearInterval(gameInterval);
         gameInterval = setInterval(gameLoop, interval);
 
@@ -185,33 +191,28 @@
       draw();
     }
 
-    function gameOver() {
-      isGameOver = true;
-      clearInterval(gameInterval);
-      gameOverDiv.style.display = "block";
-    }
-
     function draw() {
       ctx.fillStyle = "#111";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       // Рисуем змею
       for(let i=0; i<snake.length; i++){
-        let seg = snake[i];
-        ctx.fillStyle = (i === 0) ? "#0f0" : "#2f2"; // голова ярче
-        ctx.fillRect(seg.x*gridSize, seg.y*gridSize, gridSize-1, gridSize-1);
+        ctx.fillStyle = (i===0) ? "#0f0" : "#2f2";
+        ctx.fillRect(snake[i].x*gridSize, snake[i].y*gridSize, gridSize-1, gridSize-1);
       }
 
       // Рисуем яблоко
       ctx.fillStyle = "red";
       ctx.beginPath();
-      ctx.arc((food.x + 0.5)*gridSize, (food.y + 0.5)*gridSize, gridSize/2 - 2, 0, Math.PI*2);
+      ctx.arc((food.x+0.5)*gridSize, (food.y+0.5)*gridSize, gridSize/2 - 2, 0, Math.PI*2);
       ctx.fill();
     }
 
-    function randomFood() {
-      food.x = Math.floor(Math.random() * (canvas.width / gridSize));
-      food.y = Math.floor(Math.random() * (canvas.height / gridSize));
+    function gameOver() {
+      isGameOver = true;
+      clearInterval(gameInterval);
+      finalMessage.textContent = `Игра окончена! Вы съели ${score} яблок(а).`;
+      gameOverDiv.style.display = "block";
     }
 
     function updateScore() {
@@ -222,30 +223,64 @@
       startGame();
     }
 
-    document.addEventListener("keydown", e => {
-      if (isGameOver) return; // не управляем, если конец
+    function randomFood() {
+      food.x = Math.floor(Math.random() * (canvas.width / gridSize));
+      food.y = Math.floor(Math.random() * (canvas.height / gridSize));
+    }
 
-      switch(e.key){
-        case "ArrowLeft":
-          if (vx === 1) break;
-          vx = -1; vy = 0;
-          break;
-        case "ArrowRight":
-          if (vx === -1) break;
-          vx = 1; vy = 0;
-          break;
-        case "ArrowUp":
-          if (vy === 1) break;
-          vy = -1; vx = 0;
-          break;
-        case "ArrowDown":
-          if (vy === -1) break;
-          vy = 1; vx = 0;
-          break;
+    // Управление с клавиатуры
+    document.addEventListener("keydown", e => {
+      if (isGameOver) return;
+      if (e.key === "ArrowLeft" || e.key === "a" || e.key === "A"){
+        if (vx === 1) return;
+        vx = -1; vy = 0;
+      } else if (e.key === "ArrowRight" || e.key === "d" || e.key === "D"){
+        if (vx === -1) return;
+        vx = 1; vy = 0;
+      } else if (e.key === "ArrowUp" || e.key === "w" || e.key === "W"){
+        if (vy === 1) return;
+        vy = -1; vx = 0;
+      } else if (e.key === "ArrowDown" || e.key === "s" || e.key === "S"){
+        if (vy === -1) return;
+        vy = 1; vx = 0;
       }
     });
 
-    // Старт
+    // Управление свайпами (touch)
+    canvas.addEventListener("touchstart", (e)=>{
+      let touch = e.touches[0];
+      touchStartX = touch.clientX;
+      touchStartY = touch.clientY;
+    });
+
+    canvas.addEventListener("touchend", (e)=>{
+      if (isGameOver) return;
+      let touch = e.changedTouches[0];
+      let dx = touch.clientX - touchStartX;
+      let dy = touch.clientY - touchStartY;
+
+      if(Math.abs(dx) > Math.abs(dy)){ 
+        // движение по X
+        if(dx > SWIPE_THRESHOLD){
+          // свайп вправо
+          if (vx !== -1) { vx = 1; vy = 0; }
+        } else if(dx < -SWIPE_THRESHOLD){
+          // свайп влево
+          if (vx !== 1) { vx = -1; vy = 0; }
+        }
+      } else {
+        // движение по Y
+        if(dy > SWIPE_THRESHOLD){
+          // свайп вниз
+          if (vy !== -1) { vy = 1; vx = 0; }
+        } else if(dy < -SWIPE_THRESHOLD){
+          // свайп вверх
+          if (vy !== 1) { vy = -1; vx = 0; }
+        }
+      }
+    });
+
+    // Запуск сразу
     startGame();
   </script>
 </body>

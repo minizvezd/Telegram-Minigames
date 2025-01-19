@@ -66,11 +66,16 @@
       margin:10px;
       font-size:16px;
     }
+    #mineContainer {
+      position:relative;
+      display:flex;
+      justify-content:center; 
+      margin-bottom:20px;
+    }
     #board {
       display:grid;
       grid-template-columns:repeat(8,40px);
       grid-gap:3px;
-      margin-bottom:20px;
     }
     .cell {
       width:40px;
@@ -136,15 +141,13 @@
   </style>
 </head>
 <body>
-
   <header>
     <a class="back-button" href="/">Назад</a>
     <h1>Сапёр 8×8</h1>
   </header>
 
   <div class="instructions">
-    На ПК: ЛКМ — открыть, ПКМ — флажок.<br>
-    На телефоне: короткий тап — открыть, долгий тап (~0.4c) — флажок.
+    ПК: ЛКМ открыть, ПКМ флаг. Телефон: короткий тап — открыть, долгий — флаг.
   </div>
 
   <div id="info">
@@ -152,20 +155,21 @@
     <div>Время: <span id="timeValue">0</span> c</div>
   </div>
 
-  <div style="position:relative;">
-    <div id="board"></div>
-    <div id="gameOver">
-      <h2 id="resultMsg"></h2>
-      <button onclick="restartGame()">Играть снова</button>
+  <div id="mineContainer">
+    <div style="position:relative;">
+      <div id="board"></div>
+      <div id="gameOver">
+        <h2 id="resultMsg"></h2>
+        <button onclick="restartGame()">Играть снова</button>
+      </div>
     </div>
   </div>
 
   <script>
-    // Блокируем скролл, выделения
     document.addEventListener("touchmove", e=> e.preventDefault(), {passive:false});
     document.addEventListener("selectstart", e=> e.preventDefault());
 
-    const boardElem=document.getElementById("board");
+   const boardElem=document.getElementById("board");
     const minesCountElem=document.getElementById("minesCount");
     const timeValue=document.getElementById("timeValue");
     const gameOverDiv=document.getElementById("gameOver");
@@ -389,6 +393,5 @@
     }
     start();
   </script>
-
 </body>
 </html>

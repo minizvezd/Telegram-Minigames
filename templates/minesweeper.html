@@ -2,72 +2,234 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <title>Сапёр (демо)</title>
+  <title>Сапёр</title>
   <style>
-    body { text-align: center; }
+    body {
+      margin: 0; 
+      padding: 0;
+      background: #ccc;
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    h1 {
+      margin: 20px;
+    }
     #board {
       display: grid;
-      grid-template-columns: repeat(8, 30px);
-      grid-gap: 2px;
-      margin: 0 auto;
-      width: 240px;
+      grid-template-columns: repeat(8, 40px);
+      grid-gap: 3px;
+      margin-bottom: 20px;
     }
     .cell {
-      width: 30px;
-      height: 30px;
-      background: #ccc;
-      text-align: center;
-      line-height: 30px;
+      width: 40px;
+      height: 40px;
+      background: #bbb;
+      color: #000;
       font-weight: bold;
+      font-size: 18px;
+      border: 1px solid #999;
+      display: flex;
+      justify-content: center;
+      align-items: center;
       cursor: pointer;
+      user-select: none;
+    }
+    .cell.open {
+      background: #eee;
+      cursor: default;
+    }
+    .cell.flag {
+      background: #bbb url("data:image/svg+xml,%3Csvg fill='%23f00' viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M80 32v448h32V288h272c17.7 0 32-14.3 32-32v-49c0-10.6-5.2-20.6-14-26.7L276.5 112l125.5-68.3c8.7-5 14-14.1 14-24.1V-30c0-17.7-14.3-32-32-32H112c-17.7 0-32 14.3-32 32v64z'/%3E%3C/svg%3E") center center no-repeat;
+      background-size: 24px;
+    }
+    .cell.mine {
+      background: #f66;
+    }
+    #info {
+      margin: 10px;
+      font-size: 18px;
     }
   </style>
 </head>
 <body>
-  <h1>Сапёр (демо)</h1>
+  <h1>Сапёр 8×8</h1>
+  <div id="info">Осталось мин: <span id="minesCount">10</span></div>
   <div id="board"></div>
 
   <script>
-    const boardElem = document.getElementById('board');
+    const boardElem = document.getElementById("board");
+    const minesCountElem = document.getElementById("minesCount");
     const size = 8;
-    const mineCount = 10;
-    let mines = [];
+    const mineTotal = 10;
 
-    // Генерируем поле (упрощённая версия)
-    function initBoard() {
-      // Расставляем мины случайным образом
-      mines = Array(size*size).fill(false);
-      let count = 0;
-      while(count < mineCount){
-        let index = Math.floor(Math.random()*size*size);
-        if(!mines[index]){
-          mines[index] = true;
-          count++;
+    let board = [];  // массив ячеек {mine:boolean, open:boolean, flag:boolean, adjacent:number}
+    let cellsLeft = size*size; // кол-во закрытых ячеек
+
+    function initBoard(){
+      board = [];
+      for(let i=0; i<size; i++){
+        let row = [];
+        for(let j=0; j<size; j++){
+          row.push({
+            mine: false,
+            open: false,
+            flag: false,
+            adjacent: 0
+          });
+        }
+        board.push(row);
+      }
+      // Расставим мины
+      let minesPlaced = 0;
+      while(minesPlaced < mineTotal){
+        let r = Math.floor(Math.random()*size);
+        let c = Math.floor(Math.random()*size);
+        if(!board[r][c].mine){
+          board[r][c].mine = true;
+          minesPlaced++;
         }
       }
-      // Рендер ячеек
-      for(let i=0; i<size*size; i++){
-        const cell = document.createElement('div');
-        cell.className = 'cell';
-        cell.dataset.index = i;
-        cell.addEventListener('click', onCellClick);
-        boardElem.appendChild(cell);
+      // Подсчитаем adjacent
+      for(let r=0; r<size; r++){
+        for(let c=0; c<size; c++){
+          if(!board[r][c].mine){
+            board[r][c].adjacent = countMinesAround(r,c);
+          }
+        }
+      }
+      cellsLeft = size*size;
+      updateMinesCount();
+    }
+
+    function countMinesAround(r, c){
+      let count = 0;
+      for(let rr=-1; rr<=1; rr++){
+        for(let cc=-1; cc<=1; cc++){
+          let nr = r+rr; 
+          let nc = c+cc;
+          if(nr>=0 && nr<size && nc>=0 && nc<size && board[nr][nc].mine){
+            count++;
+          }
+        }
+      }
+      return count;
+    }
+
+    function drawBoard(){
+      boardElem.innerHTML = "";
+      for(let r=0; r<size; r++){
+        for(let c=0; c<size; c++){
+          const cell = document.createElement("div");
+          cell.classList.add("cell");
+          cell.dataset.row = r;
+          cell.dataset.col = c;
+
+          let data = board[r][c];
+          if(data.open){
+            cell.classList.add("open");
+            if(data.mine){
+              cell.classList.add("mine");
+              cell.textContent = "X";
+            } else if(data.adjacent > 0){
+              cell.textContent = data.adjacent;
+            }
+          } else if(data.flag){
+            cell.classList.add("flag");
+          }
+
+          boardElem.appendChild(cell);
+        }
       }
     }
 
-    function onCellClick(e) {
-      const index = e.target.dataset.index;
-      if(mines[index]) {
-        e.target.style.background = "red";
-        e.target.textContent = "X";
+    boardElem.addEventListener("click", (e)=>{
+      let cellDiv = e.target;
+      if(!cellDiv.classList.contains("cell")) return;
+      let r = parseInt(cellDiv.dataset.row);
+      let c = parseInt(cellDiv.dataset.col);
+      openCell(r,c);
+      drawBoard();
+    });
+
+    // Правая кнопка — поставить флажок
+    boardElem.addEventListener("contextmenu", (e)=>{
+      e.preventDefault();
+      let cellDiv = e.target;
+      if(!cellDiv.classList.contains("cell")) return;
+      let r = parseInt(cellDiv.dataset.row);
+      let c = parseInt(cellDiv.dataset.col);
+      flagCell(r,c);
+      drawBoard();
+    });
+
+    function openCell(r,c){
+      let cell = board[r][c];
+      if(cell.open || cell.flag) return;
+      cell.open = true;
+      cellsLeft--;
+      
+      if(cell.mine){
+        // Бах!
         alert("Мина! Игра окончена.");
-      } else {
-        e.target.style.background = "#fff";
-        e.target.textContent = "";
+        revealAll();
+        return;
+      }
+      // Если нет соседей, открыть рекурсивно
+      if(cell.adjacent === 0){
+        floodOpen(r,c);
+      }
+      if(cellsLeft === mineTotal){
+        alert("Поздравляем! Вы победили!");
+        revealAll();
       }
     }
 
+    function floodOpen(r,c){
+      for(let rr=-1; rr<=1; rr++){
+        for(let cc=-1; cc<=1; cc++){
+          let nr = r+rr;
+          let nc = c+cc;
+          if(nr>=0 && nr<size && nc>=0 && nc<size){
+            let neighbor = board[nr][nc];
+            if(!neighbor.open && !neighbor.mine){
+              openCell(nr,nc);
+            }
+          }
+        }
+      }
+    }
+
+    function revealAll(){
+      for(let r=0; r<size; r++){
+        for(let c=0; c<size; c++){
+          board[r][c].open = true;
+        }
+      }
+    }
+
+    function flagCell(r,c){
+      let cell = board[r][c];
+      if(cell.open) return;
+      cell.flag = !cell.flag;
+      updateMinesCount();
+    }
+
+    function updateMinesCount(){
+      let flags = 0;
+      for(let r=0; r<size; r++){
+        for(let c=0; c<size; c++){
+          if(board[r][c].flag) flags++;
+        }
+      }
+      let minesLeft = mineTotal - flags;
+      minesCountElem.textContent = minesLeft >= 0 ? minesLeft : 0;
+    }
+
+    // Инициализация
     initBoard();
+    drawBoard();
   </script>
 </body>
 </html>

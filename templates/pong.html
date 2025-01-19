@@ -14,8 +14,31 @@
       flex-direction: column;
       align-items: center;
     }
+    header {
+      width: 100%;
+      background: #4CAF50;
+      color: #fff;
+      text-align: center;
+      padding: 10px;
+      position: relative;
+    }
+    .back-button {
+      position: absolute;
+      left: 10px;
+      top: 10px;
+      text-decoration: none;
+      background: #333;
+      color: #fff;
+      padding: 5px 10px;
+      border-radius: 4px;
+      font-size: 14px;
+    }
+    .back-button:hover {
+      background: #555;
+    }
     h1 {
-      margin-top: 20px;
+      margin: 0;
+      font-size: 20px;
     }
     #score {
       margin: 10px;
@@ -23,12 +46,22 @@
     }
     canvas {
       border: 2px solid #ccc;
-      background: #222;
+      background: #111;
+    }
+    @media(max-width:600px) {
+      canvas {
+        width: 300px !important;
+        height: 200px !important;
+      }
     }
   </style>
 </head>
 <body>
-  <h1>Pong</h1>
+  <header>
+    <a class="back-button" href="index.html">Назад</a>
+    <h1>Pong</h1>
+  </header>
+
   <div id="score">0 : 0</div>
   <canvas id="pongCanvas" width="600" height="400"></canvas>
 
@@ -36,7 +69,6 @@
     const canvas = document.getElementById("pongCanvas");
     const ctx = canvas.getContext("2d");
 
-    // Параметры
     let paddleHeight = 70;
     let paddleWidth = 10;
 
@@ -46,8 +78,10 @@
     let ballX = canvas.width/2;
     let ballY = canvas.height/2;
     let ballSize = 8;
-    let ballSpeedX = 3;
-    let ballSpeedY = 3;
+
+    // Уменьшаем начальную скорость
+    let ballSpeedX = 2;
+    let ballSpeedY = 2;
 
     let leftScore = 0;
     let rightScore = 0;
@@ -56,6 +90,11 @@
     let leftPaddleSpeed = 5;
     let moveUp = false;
     let moveDown = false;
+
+    // Простейший таймер для ускорения шара
+    let speedUpTimer = 0;
+    let speedUpInterval = 3000; // каждые 3 секунды ускорять шар
+    let lastTimestamp = 0;
 
     document.addEventListener("keydown", (e)=>{
       if(e.key === "w" || e.key === "W") moveUp = true;
@@ -66,13 +105,18 @@
       if(e.key === "s" || e.key === "S") moveDown = false;
     });
 
-    function gameLoop(){
-      update();
-      draw();
-      requestAnimationFrame(gameLoop);
-    }
+    function update(timestamp){
+      let delta = timestamp - lastTimestamp;
+      lastTimestamp = timestamp;
 
-    function update(){
+      speedUpTimer += delta;
+      if(speedUpTimer >= speedUpInterval){
+        // Ускоряем шар
+        if(ballSpeedX > 0) ballSpeedX += 0.5; else ballSpeedX -= 0.5;
+        if(ballSpeedY > 0) ballSpeedY += 0.5; else ballSpeedY -= 0.5;
+        speedUpTimer = 0;
+      }
+
       // Движение левой ракетки
       if(moveUp && leftPaddleY > 0) {
         leftPaddleY -= leftPaddleSpeed;
@@ -96,44 +140,46 @@
       ballX += ballSpeedX;
       ballY += ballSpeedY;
 
-      // Отскок от верха/низа
-      if(ballY < 0 || ballY > canvas.height) {
+      // Отскок от верх/низ
+      if(ballY - ballSize < 0 || ballY + ballSize > canvas.height) {
         ballSpeedY = -ballSpeedY;
       }
 
-      // Проверка столкновения с левой ракеткой
+      // Левая ракетка
       if(ballX - ballSize < paddleWidth) {
-        // Мяч на уровне ракетки?
         if(ballY > leftPaddleY && ballY < leftPaddleY + paddleHeight){
           ballSpeedX = -ballSpeedX;
+          // При каждом попадании чуть ускорим
+          ballSpeedX *= 1.05;
+          ballSpeedY *= 1.05;
         } else {
-          // Пропустили мяч -> правый игрок получает очко
           rightScore++;
           resetBall();
         }
       }
 
-      // Проверка столкновения с правой ракеткой
+      // Правая ракетка
       if(ballX + ballSize > canvas.width - paddleWidth) {
-        // Мяч на уровне ракетки?
         if(ballY > rightPaddleY && ballY < rightPaddleY + paddleHeight){
           ballSpeedX = -ballSpeedX;
+          ballSpeedX *= 1.05;
+          ballSpeedY *= 1.05;
         } else {
-          // Пропустили мяч -> левый игрок получает очко
           leftScore++;
           resetBall();
         }
       }
 
-      updateScore();
+      draw();
+      requestAnimationFrame(update);
     }
 
     function resetBall() {
       ballX = canvas.width/2;
       ballY = canvas.height/2;
-      // Сбрасываем скорость
-      ballSpeedX = -ballSpeedX;
-      ballSpeedY = 3 * (Math.random() > 0.5 ? 1 : -1);
+      // Сбрасываем скорость до первоначальной (или чуть выше)
+      ballSpeedX = (Math.random() > 0.5) ? 2 : -2;
+      ballSpeedY = (Math.random() > 0.5) ? 2 : -2;
     }
 
     function draw(){
@@ -151,20 +197,18 @@
       ctx.arc(ballX, ballY, ballSize, 0, Math.PI*2);
       ctx.fill();
 
-      // Сетка
+      // Сетка посередине
       ctx.strokeStyle = "#555";
       ctx.beginPath();
       ctx.moveTo(canvas.width/2, 0);
       ctx.lineTo(canvas.width/2, canvas.height);
       ctx.stroke();
-    }
 
-    function updateScore(){
+      // Обновляем счёт
       document.getElementById("score").textContent = `${leftScore} : ${rightScore}`;
     }
 
-    // Старт
-    gameLoop();
+    requestAnimationFrame(update);
   </script>
 </body>
 </html>

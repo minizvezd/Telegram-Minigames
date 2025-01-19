@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Змейка</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <style>
     * { box-sizing: border-box; }
     body {
@@ -14,6 +15,7 @@
       background: #222;
       color: #fff;
       font-family: sans-serif;
+      overflow: hidden; /* Убираем прокрутку */
     }
     header {
       width: 100%;
@@ -49,6 +51,8 @@
       padding: 6px 10px;
       border-radius: 4px;
       line-height: 1.4;
+      max-width: 500px;
+      text-align: center;
     }
     #score {
       margin: 8px 0;
@@ -64,7 +68,7 @@
     }
     #gameOver {
       position: absolute;
-      top: 30%;
+      top: 40%;
       left: 50%;
       transform: translate(-50%, -50%);
       background: rgba(0,0,0,0.8);
@@ -97,7 +101,8 @@
 </head>
 <body>
   <header>
-    <a class="back-button" href="/">Назад</a>
+    <!-- Кнопка "Назад" вернёт на index.html -->
+    <a class="back-button" href="./index.html">Назад</a>
     <h1>Змейка</h1>
   </header>
 
@@ -125,7 +130,7 @@
 
     const gridSize = 20;
     let snake = [{x: 10, y: 10}];
-    let vx = 1, vy = 0; // <-- начинаем движение вправо
+    let vx = 1, vy = 0;
     let food = {x: 5, y: 5};
     let score = 0;
 
@@ -157,32 +162,30 @@
     function gameLoop() {
       let head = { x: snake[0].x + vx, y: snake[0].y + vy };
 
-      // Если вышли за границу — Game Over
-      if (head.x < 0 || head.x >= canvas.width/gridSize || head.y < 0 || head.y >= canvas.height/gridSize) {
+      // Столкновение со стеной => Game Over
+      if (head.x < 0 || head.x >= canvas.width/gridSize || 
+          head.y < 0 || head.y >= canvas.height/gridSize) {
         return gameOverFunc();
       }
 
-      // Проверка столкновения с хвостом
+      // Столкновение с хвостом
       for (let i = 0; i < snake.length; i++) {
         if (snake[i].x === head.x && snake[i].y === head.y) {
           return gameOverFunc();
         }
       }
 
-      // Добавляем новую голову
       snake.unshift(head);
 
-      // Проверяем, съели ли яблоко
+      // Если съели яблоко
       if (head.x === food.x && head.y === food.y) {
         score++;
         updateScore();
-        // Немного ускоряем
         interval = Math.max(50, interval - 5);
         clearInterval(gameInterval);
         gameInterval = setInterval(gameLoop, interval);
         randomFood();
       } else {
-        // Удаляем хвост
         snake.pop();
       }
 
@@ -193,13 +196,13 @@
       ctx.fillStyle = "#111";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Рисуем змею
+      // Змея
       for(let i=0; i<snake.length; i++){
         ctx.fillStyle = (i===0) ? "#0f0" : "#2f2";
         ctx.fillRect(snake[i].x*gridSize, snake[i].y*gridSize, gridSize-1, gridSize-1);
       }
 
-      // Рисуем яблоко
+      // Яблоко
       ctx.fillStyle = "red";
       ctx.beginPath();
       ctx.arc((food.x+0.5)*gridSize, (food.y+0.5)*gridSize, gridSize/2 - 2, 0, Math.PI*2);
@@ -226,10 +229,9 @@
       food.y = Math.floor(Math.random() * (canvas.height / gridSize));
     }
 
-    // Управление с клавиатуры
+    // Клавиатура
     document.addEventListener("keydown", e => {
       if (isGameOver) return;
-
       if (e.key === "ArrowLeft" || e.key === "a" || e.key === "A"){
         if (vx === 1) return;
         vx = -1; vy = 0;
@@ -245,7 +247,7 @@
       }
     });
 
-    // Управление свайпами (touch)
+    // Свайпы
     canvas.addEventListener("touchstart", (e)=>{
       let touch = e.touches[0];
       touchStartX = touch.clientX;
@@ -257,23 +259,22 @@
       let touch = e.changedTouches[0];
       let dx = touch.clientX - touchStartX;
       let dy = touch.clientY - touchStartY;
-
       if(Math.abs(dx) > Math.abs(dy)){ 
-        // движение по X
+        // по X
         if(dx > SWIPE_THRESHOLD){
-          // свайп вправо
+          // вправо
           if (vx !== -1) { vx = 1; vy = 0; }
         } else if(dx < -SWIPE_THRESHOLD){
-          // свайп влево
+          // влево
           if (vx !== 1) { vx = -1; vy = 0; }
         }
       } else {
-        // движение по Y
+        // по Y
         if(dy > SWIPE_THRESHOLD){
-          // свайп вниз
+          // вниз
           if (vy !== -1) { vy = 1; vx = 0; }
         } else if(dy < -SWIPE_THRESHOLD){
-          // свайп вверх
+          // вверх
           if (vy !== 1) { vy = -1; vx = 0; }
         }
       }

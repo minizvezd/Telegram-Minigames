@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <title>2048</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-
   <style>
     html, body {
       margin:0;
@@ -63,6 +62,11 @@
     #score {
       margin:10px;
       font-size:16px;
+    }
+    #boardContainer {
+      display:flex;
+      justify-content:center; /* центрируем */
+      margin-bottom:20px;
     }
     #board {
       position:relative;
@@ -138,31 +142,31 @@
   </style>
 </head>
 <body>
-
   <header>
     <a class="back-button" href="/">Назад</a>
     <h1>2048</h1>
   </header>
 
   <div class="instructions">
-    Объединяйте плитки с одинаковыми числами, чтобы получить более крупные. 
-    <br>Управление: стрелки / WASD, на телефоне — свайпы.
+    Управление: стрелки / WASD (свайпы на телефоне). 
+    Объединяйте плитки с одинаковыми числами.
   </div>
-
   <div id="score">Очки: <span id="scoreVal">0</span></div>
-  <div style="position:relative;">
-    <div id="board"></div>
-    <div id="gameOver">
-      <h2 id="finalMsg"></h2>
-      <button onclick="restartGame()">Играть снова</button>
+
+  <div id="boardContainer">
+    <div style="position:relative;">
+      <div id="board"></div>
+      <div id="gameOver">
+        <h2 id="finalMsg"></h2>
+        <button onclick="restartGame()">Играть снова</button>
+      </div>
     </div>
   </div>
 
   <script>
-    // Блокируем скролл, выделения
     document.addEventListener("touchmove", e=> e.preventDefault(), {passive:false});
     document.addEventListener("selectstart", e=> e.preventDefault());
-
+    
     const size=4;
     let board=[];
     let score=0;
@@ -374,6 +378,5 @@
 
     init();
   </script>
-
 </body>
 </html>

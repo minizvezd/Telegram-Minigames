@@ -97,7 +97,7 @@
 </head>
 <body>
   <header>
-    <a class="back-button" href="index.html">Назад</a>
+    <a class="back-button" href="./index.html">Назад</a>
     <h1>Змейка</h1>
   </header>
 
@@ -125,7 +125,7 @@
 
     const gridSize = 20;
     let snake = [{x: 10, y: 10}];
-    let vx = 0, vy = 0;
+    let vx = 1, vy = 0; // <-- начинаем движение вправо
     let food = {x: 5, y: 5};
     let score = 0;
 
@@ -136,11 +136,11 @@
     // Для свайпов
     let touchStartX = 0;
     let touchStartY = 0;
-    const SWIPE_THRESHOLD = 30; // минимальное смещение для распознавания свайпа
+    const SWIPE_THRESHOLD = 30;
 
     function startGame() {
       snake = [{x: 10, y: 10}];
-      vx = 0; 
+      vx = 1; 
       vy = 0;
       score = 0;
       interval = 200;
@@ -159,13 +159,13 @@
 
       // Если вышли за границу — Game Over
       if (head.x < 0 || head.x >= canvas.width/gridSize || head.y < 0 || head.y >= canvas.height/gridSize) {
-        return gameOver();
+        return gameOverFunc();
       }
 
-      // Проверка на столкновение с хвостом
+      // Проверка столкновения с хвостом
       for (let i = 0; i < snake.length; i++) {
         if (snake[i].x === head.x && snake[i].y === head.y) {
-          return gameOver();
+          return gameOverFunc();
         }
       }
 
@@ -176,12 +176,10 @@
       if (head.x === food.x && head.y === food.y) {
         score++;
         updateScore();
-
         // Немного ускоряем
         interval = Math.max(50, interval - 5);
         clearInterval(gameInterval);
         gameInterval = setInterval(gameLoop, interval);
-
         randomFood();
       } else {
         // Удаляем хвост
@@ -208,7 +206,7 @@
       ctx.fill();
     }
 
-    function gameOver() {
+    function gameOverFunc() {
       isGameOver = true;
       clearInterval(gameInterval);
       finalMessage.textContent = `Игра окончена! Вы съели ${score} яблок(а).`;
@@ -231,6 +229,7 @@
     // Управление с клавиатуры
     document.addEventListener("keydown", e => {
       if (isGameOver) return;
+
       if (e.key === "ArrowLeft" || e.key === "a" || e.key === "A"){
         if (vx === 1) return;
         vx = -1; vy = 0;
@@ -280,7 +279,7 @@
       }
     });
 
-    // Запуск сразу
+    // Старт
     startGame();
   </script>
 </body>

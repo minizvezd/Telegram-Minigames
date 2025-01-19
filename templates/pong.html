@@ -4,57 +4,167 @@
   <meta charset="UTF-8">
   <title>Pong</title>
   <style>
-    body { text-align: center; }
+    body {
+      margin: 0;
+      padding: 0;
+      background: #000;
+      color: #fff;
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    h1 {
+      margin-top: 20px;
+    }
+    #score {
+      margin: 10px;
+      font-size: 20px;
+    }
     canvas {
-      border: 1px solid #000;
-      background: #fafafa;
+      border: 2px solid #ccc;
+      background: #222;
     }
   </style>
 </head>
 <body>
   <h1>Pong</h1>
-  <canvas id="pongCanvas" width="400" height="300"></canvas>
+  <div id="score">0 : 0</div>
+  <canvas id="pongCanvas" width="600" height="400"></canvas>
+
   <script>
     const canvas = document.getElementById("pongCanvas");
     const ctx = canvas.getContext("2d");
 
-    let paddleY = canvas.height/2 - 30;
+    // Параметры
+    let paddleHeight = 70;
+    let paddleWidth = 10;
+
+    let leftPaddleY = canvas.height/2 - paddleHeight/2;
+    let rightPaddleY = canvas.height/2 - paddleHeight/2;
+
     let ballX = canvas.width/2;
     let ballY = canvas.height/2;
-    let ballSpeedX = 2, ballSpeedY = 2;
+    let ballSize = 8;
+    let ballSpeedX = 3;
+    let ballSpeedY = 3;
 
-    function draw() {
-      // Фон
-      ctx.clearRect(0,0, canvas.width, canvas.height);
+    let leftScore = 0;
+    let rightScore = 0;
 
-      // Левая ракетка
-      ctx.fillStyle = "blue";
-      ctx.fillRect(10, paddleY, 10, 60);
+    // Управление левой ракеткой (W / S)
+    let leftPaddleSpeed = 5;
+    let moveUp = false;
+    let moveDown = false;
 
-      // Мяч
-      ctx.beginPath();
-      ctx.arc(ballX, ballY, 8, 0, Math.PI*2);
-      ctx.fillStyle = "red";
-      ctx.fill();
-      ctx.closePath();
+    document.addEventListener("keydown", (e)=>{
+      if(e.key === "w" || e.key === "W") moveUp = true;
+      if(e.key === "s" || e.key === "S") moveDown = true;
+    });
+    document.addEventListener("keyup", (e)=>{
+      if(e.key === "w" || e.key === "W") moveUp = false;
+      if(e.key === "s" || e.key === "S") moveDown = false;
+    });
+
+    function gameLoop(){
+      update();
+      draw();
+      requestAnimationFrame(gameLoop);
+    }
+
+    function update(){
+      // Движение левой ракетки
+      if(moveUp && leftPaddleY > 0) {
+        leftPaddleY -= leftPaddleSpeed;
+      }
+      if(moveDown && leftPaddleY < canvas.height - paddleHeight) {
+        leftPaddleY += leftPaddleSpeed;
+      }
+
+      // Простейший "ИИ" для правой ракетки: следует за мячом
+      let center = rightPaddleY + paddleHeight/2;
+      if(center < ballY) {
+        rightPaddleY += 3;
+      } else {
+        rightPaddleY -= 3;
+      }
+      // Границы
+      if(rightPaddleY < 0) rightPaddleY = 0;
+      if(rightPaddleY > canvas.height - paddleHeight) rightPaddleY = canvas.height - paddleHeight;
 
       // Движение мяча
       ballX += ballSpeedX;
       ballY += ballSpeedY;
 
-      // Проверка коллизий со стенками
+      // Отскок от верха/низа
       if(ballY < 0 || ballY > canvas.height) {
         ballSpeedY = -ballSpeedY;
       }
-      if(ballX < 0 || ballX > canvas.width) {
-        ballSpeedX = -ballSpeedX;
+
+      // Проверка столкновения с левой ракеткой
+      if(ballX - ballSize < paddleWidth) {
+        // Мяч на уровне ракетки?
+        if(ballY > leftPaddleY && ballY < leftPaddleY + paddleHeight){
+          ballSpeedX = -ballSpeedX;
+        } else {
+          // Пропустили мяч -> правый игрок получает очко
+          rightScore++;
+          resetBall();
+        }
       }
 
-      // Простейшее ИИ управления ракеткой (следуем за мячом)
-      paddleY = ballY - 30;
+      // Проверка столкновения с правой ракеткой
+      if(ballX + ballSize > canvas.width - paddleWidth) {
+        // Мяч на уровне ракетки?
+        if(ballY > rightPaddleY && ballY < rightPaddleY + paddleHeight){
+          ballSpeedX = -ballSpeedX;
+        } else {
+          // Пропустили мяч -> левый игрок получает очко
+          leftScore++;
+          resetBall();
+        }
+      }
+
+      updateScore();
     }
 
-    setInterval(draw, 20);
+    function resetBall() {
+      ballX = canvas.width/2;
+      ballY = canvas.height/2;
+      // Сбрасываем скорость
+      ballSpeedX = -ballSpeedX;
+      ballSpeedY = 3 * (Math.random() > 0.5 ? 1 : -1);
+    }
+
+    function draw(){
+      ctx.clearRect(0,0,canvas.width,canvas.height);
+
+      // Левая ракетка
+      ctx.fillStyle = "white";
+      ctx.fillRect(0, leftPaddleY, paddleWidth, paddleHeight);
+
+      // Правая ракетка
+      ctx.fillRect(canvas.width - paddleWidth, rightPaddleY, paddleWidth, paddleHeight);
+
+      // Мяч
+      ctx.beginPath();
+      ctx.arc(ballX, ballY, ballSize, 0, Math.PI*2);
+      ctx.fill();
+
+      // Сетка
+      ctx.strokeStyle = "#555";
+      ctx.beginPath();
+      ctx.moveTo(canvas.width/2, 0);
+      ctx.lineTo(canvas.width/2, canvas.height);
+      ctx.stroke();
+    }
+
+    function updateScore(){
+      document.getElementById("score").textContent = `${leftScore} : ${rightScore}`;
+    }
+
+    // Старт
+    gameLoop();
   </script>
 </body>
 </html>

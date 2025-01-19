@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <title>Pong</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-
   <style>
     html, body {
       margin:0;
@@ -64,6 +63,12 @@
       margin:10px;
       font-size:20px;
     }
+    #pongContainer {
+      position:relative;
+      display:flex;
+      justify-content:center; /* центрируем */
+      margin-bottom:20px;
+    }
     canvas {
       border:2px solid #ccc;
       background:#111;
@@ -103,18 +108,18 @@
   </style>
 </head>
 <body>
-
   <header>
     <a class="back-button" href="/">Назад</a>
     <h1>Pong</h1>
   </header>
 
   <div class="instructions">
-    Управление левой ракеткой: W/S или ↑/↓. На телефоне — свайпы вверх/вниз.
-    <br>Игра заканчивается при 5 очках.
+    Тяни левую ракетку пальцем (или мышью). Правой управляет «ИИ».  
+    Игра заканчивается при 5 очках.
   </div>
   <div id="score">0 : 0</div>
-  <div style="position:relative;">
+
+  <div id="pongContainer">
     <canvas id="pongCanvas" width="600" height="400"></canvas>
     <div id="gameOver">
       <h2 id="finalScore">Счёт:</h2>
@@ -123,9 +128,8 @@
   </div>
 
   <script>
-    // Блокируем скролл/выделения
-    document.addEventListener("touchmove", e=>e.preventDefault(), {passive:false});
-    document.addEventListener("selectstart", e=>e.preventDefault());
+    document.addEventListener("touchmove", e=> e.preventDefault(), {passive:false});
+    document.addEventListener("selectstart", e=> e.preventDefault());
 
     const canvas=document.getElementById("pongCanvas");
     const ctx=canvas.getContext("2d");
@@ -137,76 +141,79 @@
     let ballX, ballY;
     let ballSize=8;
     let ballSpeedX, ballSpeedY;
+
     let leftScore=0;
     let rightScore=0;
 
-    let moveUp=false, moveDown=false;
     let isGameOver=false;
     const maxScore=5;
     let animationFrameId;
 
-    let touchStartY=0;
-    const SWIPE_THRESHOLD=30;
+    // Для drag
+    let isDragging=false; 
+    let offsetY=0; // разница при захвате
 
     function initGame(){
       leftPaddleY=canvas.height/2 - paddleHeight/2;
       rightPaddleY=canvas.height/2 - paddleHeight/2;
+      resetBall();
+      isGameOver=false;
+      leftScore=0;
+      rightScore=0;
+    }
+
+    function resetBall(){
       ballX=canvas.width/2;
       ballY=canvas.height/2;
       ballSpeedX=2*(Math.random()>0.5?1:-1);
       ballSpeedY=2*(Math.random()>0.5?1:-1);
-      isGameOver=false;
     }
 
     function update(){
       if(isGameOver)return;
 
-      // левой ракеткой
-      if(moveUp && leftPaddleY>0){
-        leftPaddleY-=5;
-      }
-      if(moveDown && leftPaddleY<canvas.height-paddleHeight){
-        leftPaddleY+=5;
-      }
-      // "ИИ"
-      let center=rightPaddleY+paddleHeight/2;
-      if(center<ballY){
+      // если drag, leftPaddleY изменяется напрямую в событиях. Иначе keyboard/AI.
+      // Но клавиатурное управление можно добавить при желании.
+
+      // ИИ для правой ракетки
+      let center=rightPaddleY + paddleHeight/2;
+      if(center<ballY) {
         rightPaddleY+=3;
-      } else{
+      } else {
         rightPaddleY-=3;
       }
       if(rightPaddleY<0)rightPaddleY=0;
-      if(rightPaddleY>canvas.height-paddleHeight) rightPaddleY=canvas.height-paddleHeight;
+      if(rightPaddleY>canvas.height-paddleHeight)rightPaddleY=canvas.height-paddleHeight;
 
-      // мяч
+      // движение мяча
       ballX+=ballSpeedX;
       ballY+=ballSpeedY;
 
-      // отскок
-      if(ballY-ballSize<0|| ballY+ballSize>canvas.height){
+      // отскок сверху/снизу
+      if(ballY-ballSize<0 || ballY+ballSize>canvas.height){
         ballSpeedY=-ballSpeedY;
       }
 
-      // левая
+      // левая ракетка
       if(ballX-ballSize< paddleWidth){
         if(ballY>leftPaddleY && ballY<leftPaddleY+paddleHeight){
           ballSpeedX=-ballSpeedX;
           ballSpeedX*=1.05;
           ballSpeedY*=1.05;
-        } else{
+        } else {
           rightScore++;
           checkScore();
           resetBall();
         }
       }
 
-      // правая
-      if(ballX+ballSize> canvas.width - paddleWidth){
+      // правая ракетка
+      if(ballX+ballSize> canvas.width-paddleWidth){
         if(ballY>rightPaddleY && ballY<rightPaddleY+paddleHeight){
           ballSpeedX=-ballSpeedX;
           ballSpeedX*=1.05;
           ballSpeedY*=1.05;
-        } else{
+        } else {
           leftScore++;
           checkScore();
           resetBall();
@@ -225,22 +232,15 @@
       }
     }
 
-    function resetBall(){
-      ballX=canvas.width/2;
-      ballY=canvas.height/2;
-      ballSpeedX=2*(Math.random()>0.5?1:-1);
-      ballSpeedY=2*(Math.random()>0.5?1:-1);
-    }
-
     function draw(){
       ctx.clearRect(0,0,canvas.width,canvas.height);
 
       // левая ракетка
-      ctx.fillStyle="white";
+      ctx.fillStyle="#fff";
       ctx.fillRect(0,leftPaddleY,paddleWidth,paddleHeight);
 
       // правая ракетка
-      ctx.fillRect(canvas.width-paddleWidth,rightPaddleY,paddleWidth,paddleHeight);
+      ctx.fillRect(canvas.width-paddleWidth, rightPaddleY,paddleWidth,paddleHeight);
 
       // мяч
       ctx.beginPath();
@@ -258,52 +258,66 @@
     }
 
     function restartGame(){
-      leftScore=0;
-      rightScore=0;
       document.getElementById("gameOver").style.display="none";
       initGame();
       cancelAnimationFrame(animationFrameId);
       requestAnimationFrame(update);
     }
 
-    // клавиатура
-    document.addEventListener("keydown", e=>{
-      if(e.key==="w"||e.key==="W"|| e.key==="ArrowUp"){
-        moveUp=true;
-      }
-      if(e.key==="s"||e.key==="S"|| e.key==="ArrowDown"){
-        moveDown=true;
+    // drag управление левой ракеткой
+    // Мышь
+    canvas.addEventListener("mousedown", e=>{
+      let rect=canvas.getBoundingClientRect();
+      let x=e.clientX-rect.left;
+      let y=e.clientY-rect.top;
+      // проверим, кликнули ли по левой части
+      if(x<=paddleWidth+5 && y>=leftPaddleY && y<=leftPaddleY+paddleHeight){
+        isDragging=true;
+        offsetY=y-leftPaddleY;
       }
     });
-    document.addEventListener("keyup", e=>{
-      if(e.key==="w"||e.key==="W"|| e.key==="ArrowUp"){
-        moveUp=false;
+    canvas.addEventListener("mousemove", e=>{
+      if(isDragging){
+        let rect=canvas.getBoundingClientRect();
+        let y=e.clientY-rect.top - offsetY;
+        leftPaddleY=Math.max(0, Math.min(canvas.height-paddleHeight,y));
       }
-      if(e.key==="s"||e.key==="S"|| e.key==="ArrowDown"){
-        moveDown=false;
-      }
+    });
+    canvas.addEventListener("mouseup", e=>{
+      isDragging=false;
+    });
+    canvas.addEventListener("mouseleave", e=>{
+      isDragging=false;
     });
 
-    // свайпы
+    // touch
     canvas.addEventListener("touchstart", e=>{
-      touchStartY=e.touches[0].clientY;
+      let rect=canvas.getBoundingClientRect();
+      let touch=e.touches[0];
+      let x=touch.clientX-rect.left;
+      let y=touch.clientY-rect.top;
+      if(x<=paddleWidth+5 && y>=leftPaddleY && y<=leftPaddleY+paddleHeight){
+        isDragging=true;
+        offsetY=y-leftPaddleY;
+      }
+    });
+    canvas.addEventListener("touchmove", e=>{
+      if(isDragging){
+        let rect=canvas.getBoundingClientRect();
+        let touch=e.touches[0];
+        let y=touch.clientY-rect.top-offsetY;
+        leftPaddleY=Math.max(0, Math.min(canvas.height-paddleHeight,y));
+      }
     });
     canvas.addEventListener("touchend", e=>{
-      if(isGameOver)return;
-      let deltaY=e.changedTouches[0].clientY-touchStartY;
-      if(Math.abs(deltaY)>SWIPE_THRESHOLD){
-        if(deltaY<0){
-          moveUp=true;
-          setTimeout(()=>moveUp=false,100);
-        } else{
-          moveDown=true;
-          setTimeout(()=>moveDown=false,100);
-        }
-      }
+      isDragging=false;
+    });
+    canvas.addEventListener("touchcancel", e=>{
+      isDragging=false;
     });
 
+    // старт
     restartGame();
   </script>
-
 </body>
 </html>

@@ -4,8 +4,9 @@
   <meta charset="UTF-8">
   <title>Сапёр</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+
   <style>
-    body {
+    html, body {
       margin:0; 
       padding:0;
       background:#ccc;
@@ -13,6 +14,8 @@
       display:flex;
       flex-direction:column;
       align-items:center;
+      overscroll-behavior:none;
+      -webkit-overflow-scrolling:none;
       -webkit-touch-callout:none;
       -webkit-user-select:none;
       -moz-user-select:none;
@@ -133,13 +136,14 @@
   </style>
 </head>
 <body>
+
   <header>
     <a class="back-button" href="/">Назад</a>
     <h1>Сапёр 8×8</h1>
   </header>
 
   <div class="instructions">
-    На ПК: ЛКМ — открыть ячейку, ПКМ — флажок.<br>
+    На ПК: ЛКМ — открыть, ПКМ — флажок.<br>
     На телефоне: короткий тап — открыть, долгий тап (~0.4c) — флажок.
   </div>
 
@@ -147,7 +151,7 @@
     <div>Осталось мин: <span id="minesCount">10</span></div>
     <div>Время: <span id="timeValue">0</span> c</div>
   </div>
-  
+
   <div style="position:relative;">
     <div id="board"></div>
     <div id="gameOver">
@@ -157,6 +161,10 @@
   </div>
 
   <script>
+    // Блокируем скролл, выделения
+    document.addEventListener("touchmove", e=> e.preventDefault(), {passive:false});
+    document.addEventListener("selectstart", e=> e.preventDefault());
+
     const boardElem=document.getElementById("board");
     const minesCountElem=document.getElementById("minesCount");
     const timeValue=document.getElementById("timeValue");
@@ -172,7 +180,6 @@
     let timerInterval=null;
     let isGameOver=false;
 
-    // для long press
     let touchTimeout=null;
     let touchedCell=null;
 
@@ -181,12 +188,7 @@
       for(let r=0;r<size;r++){
         let row=[];
         for(let c=0;c<size;c++){
-          row.push({
-            mine:false,
-            open:false,
-            flag:false,
-            adjacent:0
-          });
+          row.push({mine:false,open:false,flag:false,adjacent:0});
         }
         board.push(row);
       }
@@ -218,7 +220,7 @@
         for(let cc=-1;cc<=1;cc++){
           let nr=r+rr;
           let nc=c+cc;
-          if(nr>=0&&nr<size&&nc>=0&&nc<size&&board[nr][nc].mine){
+          if(nr>=0&&nr<size&&nc>=0&&nc<size&& board[nr][nc].mine){
             count++;
           }
         }
@@ -250,10 +252,8 @@
 
           boardElem.appendChild(cellDiv);
 
-          // Мобильные
           cellDiv.addEventListener("touchstart", e=> onTouchStart(e,cellDiv));
           cellDiv.addEventListener("touchend", e=> onTouchEnd(e,cellDiv));
-          // ПК
           cellDiv.addEventListener("click", onCellClick);
         }
       }
@@ -272,8 +272,8 @@
       if(isGameOver)return;
       let target=e.target;
       if(!target.classList.contains("cell"))return;
-      let r=+target.dataset.r;
-      let c=+target.dataset.c;
+      let r= +target.dataset.r;
+      let c= +target.dataset.c;
       toggleFlag(r,c);
       drawBoard();
     });
@@ -282,10 +282,10 @@
       if(isGameOver)return;
       touchedCell=cellDiv;
       touchTimeout=setTimeout(()=>{
-        // long press => флажок
+        // Долгий тап => флажок
         if(touchedCell){
-          let rr=+touchedCell.dataset.r;
-          let cc=+touchedCell.dataset.c;
+          let rr= +touchedCell.dataset.r;
+          let cc= +touchedCell.dataset.c;
           toggleFlag(rr,cc);
           drawBoard();
           touchedCell=null;
@@ -297,8 +297,8 @@
       if(touchTimeout) clearTimeout(touchTimeout);
       if(touchedCell){
         // короткий тап => открыть
-        let rr=+cellDiv.dataset.r;
-        let cc=+cellDiv.dataset.c;
+        let rr= +cellDiv.dataset.r;
+        let cc= +cellDiv.dataset.c;
         openCell(rr,cc);
         drawBoard();
       }
@@ -310,6 +310,7 @@
       if(cell.open||cell.flag)return;
       cell.open=true;
       cellsLeft--;
+
       if(cell.mine){
         showAllMines();
         endGame(false);
@@ -327,22 +328,21 @@
       let cell=board[r][c];
       if(cell.open)return;
       cell.flag=!cell.flag;
-      if(cell.flag) flagsUsed++;
-      else flagsUsed--;
+      flagsUsed += cell.flag ? 1 : -1;
       updateMinesCount();
     }
 
     function updateMinesCount(){
-      let left= mineTotal-flagsUsed;
-      minesCountElem.textContent= left>=0? left:0;
+      let minesLeft= mineTotal- flagsUsed;
+      minesCountElem.textContent=(minesLeft>=0)? minesLeft: 0;
     }
 
     function floodOpen(r,c){
-      for(let rr=-1; rr<=1; rr++){
-        for(let cc=-1; cc<=1; cc++){
-          let nr=r+rr;
+      for(let rr=-1;rr<=1;rr++){
+        for(let cc=-1;cc<=1;cc++){
+          let nr=r+rr; 
           let nc=c+cc;
-          if(nr>=0&&nr<size&&nc>=0&&nc<size){
+          if(nr>=0 && nr<size && nc>=0 && nc<size){
             let neigh=board[nr][nc];
             if(!neigh.open && !neigh.mine){
               openCell(nr,nc);
@@ -389,5 +389,6 @@
     }
     start();
   </script>
+
 </body>
 </html>

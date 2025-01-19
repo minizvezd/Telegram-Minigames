@@ -7,7 +7,7 @@
 
   <style>
     html, body {
-      margin:0; 
+      margin:0;
       padding:0;
       background:#222;
       color:#fff;
@@ -20,6 +20,9 @@
       -ms-user-select:none;
       user-select:none;
       touch-action:none;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
     }
     header {
       width:100%;
@@ -40,7 +43,7 @@
       border-radius:4px;
       font-size:14px;
     }
-    .back-button:hover{
+    .back-button:hover {
       background:#555;
     }
     h1 {
@@ -61,10 +64,15 @@
       margin-top:5px;
       font-size:16px;
     }
+    #tetrisContainer {
+      position:relative;
+      margin:10px auto;
+      display:flex;
+      justify-content:center; /* центр */
+    }
     #tetrisCanvas {
       border:2px solid #999;
       background:#111;
-      margin-top:10px;
       display:block;
     }
     #gameOver {
@@ -93,7 +101,7 @@
       background:#d55;
     }
     @media(max-width:600px){
-      #tetrisCanvas{
+      #tetrisCanvas {
         width:180px !important;
         height:360px !important;
       }
@@ -108,15 +116,16 @@
   </header>
 
   <div class="instructions">
-    Управление: стрелки или WASD. Влево/вправо — сдвиг, вверх — поворот, вниз — ускоренное падение.<br>
-    На телефоне: свайпы (влево/вправо/вверх/вниз).
+    Управление: стрелки или WASD.  
+    На телефоне: свайпы.  
+    +1 очко за поставленную фигуру, +10 за каждую удалённую линию.
   </div>
-
+  
   <div id="info">
     Очки: <span id="score">0</span>
   </div>
 
-  <div style="position:relative;">
+  <div id="tetrisContainer">
     <canvas id="tetrisCanvas" width="200" height="400"></canvas>
     <div id="gameOver">
       <h2 id="finalScore"></h2>
@@ -125,11 +134,10 @@
   </div>
 
   <script>
-    // Блокируем скролл/выделение
-    document.addEventListener("touchmove", e=>e.preventDefault(), { passive:false });
-    document.addEventListener("selectstart", e=>e.preventDefault());
+    document.addEventListener("touchmove", e=> e.preventDefault(), {passive:false});
+    document.addEventListener("selectstart", e=> e.preventDefault());
 
-    const canvas=document.getElementById("tetrisCanvas");
+   const canvas=document.getElementById("tetrisCanvas");
     const ctx=canvas.getContext("2d");
 
     const COLS=10, ROWS=20, BLOCK_SIZE=20;

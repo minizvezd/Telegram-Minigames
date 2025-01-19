@@ -1,25 +1,27 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Мини-игры</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+
   <style>
-    * {
-      box-sizing: border-box;
-    }
-    body {
+    /* Отключаем скролл/перетаскивания */
+    html, body {
       margin: 0; 
       padding: 0;
       background: #f0f0f0;
       font-family: Arial, sans-serif;
-      -webkit-touch-callout: none; /* Убирает выделение на iOS */
+      overscroll-behavior: none;       /* Chrome, Firefox */
+      -webkit-overflow-scrolling: none;/* iOS Safari */
+      -webkit-touch-callout: none;     /* iOS long press menu off */
       -webkit-user-select: none;
       -moz-user-select: none;
       -ms-user-select: none;
-      user-select: none; 
-      /* Можно отключить если нужно текстовое выделение */
+      user-select: none;
+      touch-action: none;             /* Отключить жесты (pull-to-refresh) */
     }
+
     header {
       background: #4CAF50;
       color: #fff;
@@ -70,9 +72,11 @@
   </style>
 </head>
 <body>
+
   <header>
     <h1>Добро пожаловать в мини-игры</h1>
   </header>
+
   <main>
     <div class="games">
       <a class="game-link" href="./snake.html">Змейка</a>
@@ -82,5 +86,13 @@
       <a class="game-link" href="./minesweeper.html">Сапёр</a>
     </div>
   </main>
+
+  <script>
+    // Отключаем любые скроллы/обновления
+    document.addEventListener("touchmove", e => e.preventDefault(), { passive: false });
+    // Отключаем выделение текста
+    document.addEventListener("selectstart", e => e.preventDefault());
+  </script>
+
 </body>
 </html>

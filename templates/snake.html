@@ -15,7 +15,12 @@
       background: #222;
       color: #fff;
       font-family: sans-serif;
-      overflow: hidden; /* Убираем прокрутку */
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+      touch-action: none; /* Чтобы не скроллилось и не выделялось */
     }
     header {
       width: 100%;
@@ -101,13 +106,12 @@
 </head>
 <body>
   <header>
-    <!-- Кнопка "Назад" вернёт на index.html -->
     <a class="back-button" href="/">Назад</a>
     <h1>Змейка</h1>
   </header>
 
   <div class="instructions">
-    Управление: Стрелки или W/A/S/D. На телефоне — свайпы в сторону хода.<br>
+    Управление: Стрелки или W/A/S/D. На телефоне — свайпы.<br>
     Цель: съесть как можно больше яблок. Столкновение со стеной или хвостом — проигрыш.
   </div>
 
@@ -138,7 +142,7 @@
     let gameInterval = null;
     let isGameOver = false;
 
-    // Для свайпов
+    // Свайпы
     let touchStartX = 0;
     let touchStartY = 0;
     const SWIPE_THRESHOLD = 30;
@@ -163,7 +167,7 @@
       let head = { x: snake[0].x + vx, y: snake[0].y + vy };
 
       // Столкновение со стеной => Game Over
-      if (head.x < 0 || head.x >= canvas.width/gridSize || 
+      if (head.x < 0 || head.x >= canvas.width/gridSize ||
           head.y < 0 || head.y >= canvas.height/gridSize) {
         return gameOverFunc();
       }
@@ -175,6 +179,7 @@
         }
       }
 
+      // Добавляем голову
       snake.unshift(head);
 
       // Если съели яблоко
@@ -196,13 +201,11 @@
       ctx.fillStyle = "#111";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Змея
       for(let i=0; i<snake.length; i++){
         ctx.fillStyle = (i===0) ? "#0f0" : "#2f2";
         ctx.fillRect(snake[i].x*gridSize, snake[i].y*gridSize, gridSize-1, gridSize-1);
       }
 
-      // Яблоко
       ctx.fillStyle = "red";
       ctx.beginPath();
       ctx.arc((food.x+0.5)*gridSize, (food.y+0.5)*gridSize, gridSize/2 - 2, 0, Math.PI*2);
@@ -232,55 +235,50 @@
     // Клавиатура
     document.addEventListener("keydown", e => {
       if (isGameOver) return;
-      if (e.key === "ArrowLeft" || e.key === "a" || e.key === "A"){
-        if (vx === 1) return;
-        vx = -1; vy = 0;
-      } else if (e.key === "ArrowRight" || e.key === "d" || e.key === "D"){
-        if (vx === -1) return;
-        vx = 1; vy = 0;
-      } else if (e.key === "ArrowUp" || e.key === "w" || e.key === "W"){
-        if (vy === 1) return;
-        vy = -1; vx = 0;
-      } else if (e.key === "ArrowDown" || e.key === "s" || e.key === "S"){
-        if (vy === -1) return;
-        vy = 1; vx = 0;
+      switch(e.key){
+        case "ArrowLeft": case "a": case "A":
+          if(vx!==1){ vx=-1; vy=0; }
+          break;
+        case "ArrowRight": case "d": case "D":
+          if(vx!==-1){ vx=1; vy=0; }
+          break;
+        case "ArrowUp": case "w": case "W":
+          if(vy!==1){ vy=-1; vx=0; }
+          break;
+        case "ArrowDown": case "s": case "S":
+          if(vy!==-1){ vy=1; vx=0; }
+          break;
       }
     });
 
     // Свайпы
-    canvas.addEventListener("touchstart", (e)=>{
-      let touch = e.touches[0];
-      touchStartX = touch.clientX;
-      touchStartY = touch.clientY;
+    canvas.addEventListener("touchstart", e=>{
+      let t = e.touches[0];
+      touchStartX = t.clientX;
+      touchStartY = t.clientY;
     });
-
-    canvas.addEventListener("touchend", (e)=>{
-      if (isGameOver) return;
-      let touch = e.changedTouches[0];
-      let dx = touch.clientX - touchStartX;
-      let dy = touch.clientY - touchStartY;
-      if(Math.abs(dx) > Math.abs(dy)){ 
-        // по X
-        if(dx > SWIPE_THRESHOLD){
-          // вправо
-          if (vx !== -1) { vx = 1; vy = 0; }
-        } else if(dx < -SWIPE_THRESHOLD){
-          // влево
-          if (vx !== 1) { vx = -1; vy = 0; }
+    canvas.addEventListener("touchend", e=>{
+      if(isGameOver) return;
+      let t = e.changedTouches[0];
+      let dx = t.clientX - touchStartX;
+      let dy = t.clientY - touchStartY;
+      if(Math.abs(dx)>Math.abs(dy)){
+        // По X
+        if(dx>SWIPE_THRESHOLD){
+          if(vx!==-1){ vx=1; vy=0; }
+        } else if(dx< -SWIPE_THRESHOLD){
+          if(vx!==1){ vx=-1; vy=0; }
         }
       } else {
-        // по Y
-        if(dy > SWIPE_THRESHOLD){
-          // вниз
-          if (vy !== -1) { vy = 1; vx = 0; }
-        } else if(dy < -SWIPE_THRESHOLD){
-          // вверх
-          if (vy !== 1) { vy = -1; vx = 0; }
+        // По Y
+        if(dy>SWIPE_THRESHOLD){
+          if(vy!==-1){ vy=1; vx=0; }
+        } else if(dy< -SWIPE_THRESHOLD){
+          if(vy!==1){ vy=-1; vx=0; }
         }
       }
     });
 
-    // Старт
     startGame();
   </script>
 </body>

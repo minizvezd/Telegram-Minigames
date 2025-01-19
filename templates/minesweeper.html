@@ -6,137 +6,141 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <style>
     body {
-      margin: 0; 
-      padding: 0;
-      background: #ccc;
-      font-family: sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      overflow: hidden;
+      margin:0; 
+      padding:0;
+      background:#ccc;
+      font-family:sans-serif;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      -webkit-touch-callout:none;
+      -webkit-user-select:none;
+      -moz-user-select:none;
+      -ms-user-select:none;
+      user-select:none;
+      touch-action:none;
     }
     header {
-      width: 100%;
-      background: #4CAF50;
-      color: #fff;
-      text-align: center;
-      padding: 10px;
-      position: relative;
+      width:100%;
+      background:#4CAF50;
+      color:#fff;
+      text-align:center;
+      padding:10px;
+      position:relative;
     }
     .back-button {
-      position: absolute;
-      left: 10px;
-      top: 10px;
-      text-decoration: none;
-      background: #333;
-      color: #fff;
-      padding: 6px 12px;
-      border-radius: 4px;
-      font-size: 14px;
+      position:absolute;
+      left:10px;
+      top:10px;
+      text-decoration:none;
+      background:#333;
+      color:#fff;
+      padding:6px12px;
+      border-radius:4px;
+      font-size:14px;
     }
     .back-button:hover {
-      background: #555;
+      background:#555;
     }
     h1 {
-      margin: 0;
-      font-size: 20px;
+      margin:0;
+      font-size:20px;
     }
     .instructions {
-      margin: 10px;
-      font-size: 14px;
-      background: #bbb;
-      padding: 6px 10px;
-      border-radius: 4px;
-      line-height: 1.4;
-      color: #000;
-      max-width: 500px;
-      text-align: center;
+      margin:10px;
+      font-size:14px;
+      background:#bbb;
+      padding:6px10px;
+      border-radius:4px;
+      line-height:1.4;
+      color:#000;
+      max-width:500px;
+      text-align:center;
     }
     #info {
-      display: flex;
-      gap: 20px;
-      margin: 10px;
-      font-size: 16px;
+      display:flex;
+      gap:20px;
+      margin:10px;
+      font-size:16px;
     }
     #board {
-      display: grid;
-      grid-template-columns: repeat(8, 40px);
-      grid-gap: 3px;
-      margin-bottom: 20px;
+      display:grid;
+      grid-template-columns:repeat(8,40px);
+      grid-gap:3px;
+      margin-bottom:20px;
     }
     .cell {
-      width: 40px;
-      height: 40px;
-      background: #bbb;
-      color: #000;
-      font-weight: bold;
-      font-size: 18px;
-      border: 1px solid #999;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      cursor: pointer;
-      user-select: none;
-      border-radius: 3px;
+      width:40px;
+      height:40px;
+      background:#bbb;
+      color:#000;
+      font-weight:bold;
+      font-size:18px;
+      border:1px solid #999;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      cursor:pointer;
+      border-radius:3px;
     }
     .cell.open {
-      background: #eee;
-      cursor: default;
+      background:#eee;
+      cursor:default;
     }
     .cell.flag {
-      background: #bbb url("data:image/svg+xml,%3Csvg fill='%23f00' viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M80 32v448h32V288h272c17.7 0 32-14.3 32-32v-49c0-10.6-5.2-20.6-14-26.7L276.5 112l125.5-68.3c8.7-5 14-14.1 14-24.1V-30c0-17.7-14.3-32-32-32H112c-17.7 0-32 14.3-32 32v64z'/%3E%3C/svg%3E") center center no-repeat;
-      background-size: 24px;
+      background:#bbb url("data:image/svg+xml,%3Csvg fill='%23f00' viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M80 32v448h32V288h272c17.7 0 32-14.3 32-32v-49c0-10.6-5.2-20.6-14-26.7L276.5 112l125.5-68.3c8.7-5 14-14.1 14-24.1V-30c0-17.7-14.3-32-32-32H112c-17.7 0-32 14.3-32 32v64z'/%3E%3C/svg%3E") center center no-repeat;
+      background-size:24px;
     }
     .cell.mine {
-      background: #f66;
-      color: #fff;
+      background:#f66;
+      color:#fff;
     }
     #gameOver {
-      position: absolute;
-      top: 35%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: rgba(0,0,0,0.7);
-      color: #fff;
-      padding: 20px;
-      border-radius: 8px;
-      text-align: center;
-      display: none;
+      position:absolute;
+      top:35%;
+      left:50%;
+      transform:translate(-50%,-50%);
+      background:rgba(0,0,0,0.7);
+      color:#fff;
+      padding:20px;
+      border-radius:8px;
+      text-align:center;
+      display:none;
     }
     #gameOver button {
-      margin-top: 10px;
-      padding: 8px 16px;
-      background: #f66;
-      border: none;
-      cursor: pointer;
-      color: #fff;
-      border-radius: 5px;
-      font-size: 16px;
+      margin-top:10px;
+      padding:8px16px;
+      background:#f66;
+      border:none;
+      cursor:pointer;
+      color:#fff;
+      border-radius:5px;
+      font-size:16px;
     }
     #gameOver button:hover {
-      background: #d55;
+      background:#d55;
     }
     @media(max-width:600px){
       #board {
-        grid-template-columns: repeat(8, 35px);
+        grid-template-columns:repeat(8,35px);
       }
       .cell {
-        width: 35px;
-        height: 35px;
-        font-size: 16px;
+        width:35px;
+        height:35px;
+        font-size:16px;
       }
     }
   </style>
 </head>
 <body>
   <header>
-    <a class="back-button" href="./index.html">Назад</a>
+    <a class="back-button" href="/">Назад</a>
     <h1>Сапёр 8×8</h1>
   </header>
 
   <div class="instructions">
-    На ПК: ЛКМ — открыть ячейку, ПКМ — поставить флажок.<br>
-    На телефоне: быстрый тап — открыть, **долгий тап (удержание ~0.4с)** — поставить/убрать флажок.
+    На ПК: ЛКМ — открыть ячейку, ПКМ — флажок.<br>
+    На телефоне: короткий тап — открыть, долгий тап (~0.4c) — флажок.
   </div>
 
   <div id="info">
@@ -144,7 +148,7 @@
     <div>Время: <span id="timeValue">0</span> c</div>
   </div>
   
-  <div style="position: relative;">
+  <div style="position:relative;">
     <div id="board"></div>
     <div id="gameOver">
       <h2 id="resultMsg"></h2>
@@ -153,70 +157,68 @@
   </div>
 
   <script>
-    const boardElem = document.getElementById("board");
-    const minesCountElem = document.getElementById("minesCount");
-    const timeValue = document.getElementById("timeValue");
-    const gameOverDiv = document.getElementById("gameOver");
-    const resultMsg = document.getElementById("resultMsg");
+    const boardElem=document.getElementById("board");
+    const minesCountElem=document.getElementById("minesCount");
+    const timeValue=document.getElementById("timeValue");
+    const gameOverDiv=document.getElementById("gameOver");
+    const resultMsg=document.getElementById("resultMsg");
 
-    const size = 8;
-    const mineTotal = 10;
-    let board = [];
-    let cellsLeft = size*size;
-    let flagsUsed = 0;
-    let startTime = 0;
-    let timerInterval = null;
-    let isGameOver = false;
+    const size=8;
+    const mineTotal=10;
+    let board=[];
+    let cellsLeft=size*size;
+    let flagsUsed=0;
+    let startTime=0;
+    let timerInterval=null;
+    let isGameOver=false;
 
-    // Для long press
-    let touchTimeout = null;
-    let touchedCell = null;
+    // для long press
+    let touchTimeout=null;
+    let touchedCell=null;
 
     function initBoard(){
-      board = [];
-      for(let r=0; r<size; r++){
-        let row = [];
-        for(let c=0; c<size; c++){
+      board=[];
+      for(let r=0;r<size;r++){
+        let row=[];
+        for(let c=0;c<size;c++){
           row.push({
-            mine: false,
-            open: false,
-            flag: false,
-            adjacent: 0
+            mine:false,
+            open:false,
+            flag:false,
+            adjacent:0
           });
         }
         board.push(row);
       }
-      // Расставляем мины
-      let placed = 0;
-      while(placed < mineTotal){
-        let rr = Math.floor(Math.random()*size);
-        let cc = Math.floor(Math.random()*size);
+      let placed=0;
+      while(placed<mineTotal){
+        let rr=Math.floor(Math.random()*size);
+        let cc=Math.floor(Math.random()*size);
         if(!board[rr][cc].mine){
-          board[rr][cc].mine = true;
+          board[rr][cc].mine=true;
           placed++;
         }
       }
-      // Подсчёт соседей
-      for(let r=0; r<size; r++){
-        for(let c=0; c<size; c++){
+      for(let r=0;r<size;r++){
+        for(let c=0;c<size;c++){
           if(!board[r][c].mine){
-            board[r][c].adjacent = countMines(r,c);
+            board[r][c].adjacent=countMines(r,c);
           }
         }
       }
-      cellsLeft = size*size;
-      flagsUsed = 0;
-      isGameOver = false;
+      cellsLeft=size*size;
+      flagsUsed=0;
+      isGameOver=false;
       updateMinesCount();
     }
 
     function countMines(r,c){
-      let count = 0;
-      for(let rr=-1; rr<=1; rr++){
-        for(let cc=-1; cc<=1; cc++){
-          let nr = r+rr;
-          let nc = c+cc;
-          if(nr>=0 && nr<size && nc>=0 && nc<size && board[nr][nc].mine){
+      let count=0;
+      for(let rr=-1;rr<=1;rr++){
+        for(let cc=-1;cc<=1;cc++){
+          let nr=r+rr;
+          let nc=c+cc;
+          if(nr>=0&&nr<size&&nc>=0&&nc<size&&board[nr][nc].mine){
             count++;
           }
         }
@@ -225,22 +227,22 @@
     }
 
     function drawBoard(){
-      boardElem.innerHTML = "";
-      for(let r=0; r<size; r++){
-        for(let c=0; c<size; c++){
-          const cellDiv = document.createElement("div");
+      boardElem.innerHTML="";
+      for(let r=0;r<size;r++){
+        for(let c=0;c<size;c++){
+          const cellDiv=document.createElement("div");
           cellDiv.classList.add("cell");
-          cellDiv.dataset.r = r;
-          cellDiv.dataset.c = c;
+          cellDiv.dataset.r=r;
+          cellDiv.dataset.c=c;
 
-          let data = board[r][c];
+          let data=board[r][c];
           if(data.open){
             cellDiv.classList.add("open");
             if(data.mine){
               cellDiv.classList.add("mine");
-              cellDiv.textContent = "X";
-            } else if(data.adjacent > 0){
-              cellDiv.textContent = data.adjacent;
+              cellDiv.textContent="X";
+            } else if(data.adjacent>0){
+              cellDiv.textContent=data.adjacent;
             }
           } else if(data.flag){
             cellDiv.classList.add("flag");
@@ -248,103 +250,101 @@
 
           boardElem.appendChild(cellDiv);
 
-          // Для мобильных (long press)
-          cellDiv.addEventListener("touchstart", e => onTouchStart(e, cellDiv));
-          cellDiv.addEventListener("touchend", e => onTouchEnd(e, cellDiv));
-          // Для PC
-          cellDiv.addEventListener("click", onClickCell);
+          // Мобильные
+          cellDiv.addEventListener("touchstart", e=> onTouchStart(e,cellDiv));
+          cellDiv.addEventListener("touchend", e=> onTouchEnd(e,cellDiv));
+          // ПК
+          cellDiv.addEventListener("click", onCellClick);
         }
       }
     }
 
-    function onClickCell(e){
-      if(isGameOver) return;
-      let r = +e.target.dataset.r;
-      let c = +e.target.dataset.c;
-      // ЛКМ => открыть ячейку
+    function onCellClick(e){
+      if(isGameOver)return;
+      let r= +e.target.dataset.r;
+      let c= +e.target.dataset.c;
       openCell(r,c);
       drawBoard();
     }
 
-    // ПК: правый клик => поставить флажок
-    boardElem.addEventListener("contextmenu", e => {
+    boardElem.addEventListener("contextmenu", e=>{
       e.preventDefault();
-      if(isGameOver) return;
-      if(!e.target.classList.contains("cell")) return;
-      let r = +e.target.dataset.r;
-      let c = +e.target.dataset.c;
+      if(isGameOver)return;
+      let target=e.target;
+      if(!target.classList.contains("cell"))return;
+      let r=+target.dataset.r;
+      let c=+target.dataset.c;
       toggleFlag(r,c);
       drawBoard();
     });
 
-    // Мобильная логика long press
     function onTouchStart(e, cellDiv){
-      if(isGameOver) return;
-      touchedCell = cellDiv;
-      touchTimeout = setTimeout(()=>{
-        // Считаем, что это long press => флажок
+      if(isGameOver)return;
+      touchedCell=cellDiv;
+      touchTimeout=setTimeout(()=>{
+        // long press => флажок
         if(touchedCell){
-          let r = +touchedCell.dataset.r;
-          let c = +touchedCell.dataset.c;
-          toggleFlag(r,c);
+          let rr=+touchedCell.dataset.r;
+          let cc=+touchedCell.dataset.c;
+          toggleFlag(rr,cc);
           drawBoard();
-          touchedCell = null;
+          touchedCell=null;
         }
-      }, 400); // 0.4s
+      },400);
     }
     function onTouchEnd(e, cellDiv){
-      if(isGameOver) return;
+      if(isGameOver)return;
       if(touchTimeout) clearTimeout(touchTimeout);
       if(touchedCell){
-        // Значит это короткий тап => открыть клетку
-        let r = +cellDiv.dataset.r;
-        let c = +cellDiv.dataset.c;
-        openCell(r,c);
+        // короткий тап => открыть
+        let rr=+cellDiv.dataset.r;
+        let cc=+cellDiv.dataset.c;
+        openCell(rr,cc);
         drawBoard();
       }
-      touchedCell = null;
+      touchedCell=null;
     }
 
     function openCell(r,c){
-      let cell = board[r][c];
-      if(cell.open || cell.flag) return;
-      cell.open = true;
+      let cell=board[r][c];
+      if(cell.open||cell.flag)return;
+      cell.open=true;
       cellsLeft--;
-
       if(cell.mine){
         showAllMines();
         endGame(false);
         return;
       }
-      if(cell.adjacent === 0){
+      if(cell.adjacent===0){
         floodOpen(r,c);
       }
-      if(cellsLeft === mineTotal){
+      if(cellsLeft===mineTotal){
         endGame(true);
       }
     }
 
     function toggleFlag(r,c){
-      let cell = board[r][c];
-      if(cell.open) return;
-      cell.flag = !cell.flag;
-      cell.flag ? flagsUsed++ : flagsUsed--;
+      let cell=board[r][c];
+      if(cell.open)return;
+      cell.flag=!cell.flag;
+      if(cell.flag) flagsUsed++;
+      else flagsUsed--;
       updateMinesCount();
     }
 
     function updateMinesCount(){
-      let minesLeft = mineTotal - flagsUsed;
-      minesCountElem.textContent = (minesLeft >= 0) ? minesLeft : 0;
+      let left= mineTotal-flagsUsed;
+      minesCountElem.textContent= left>=0? left:0;
     }
 
     function floodOpen(r,c){
       for(let rr=-1; rr<=1; rr++){
         for(let cc=-1; cc<=1; cc++){
-          let nr = r+rr;
-          let nc = c+cc;
-          if(nr>=0 && nr<size && nc>=0 && nc<size){
-            let neighbor = board[nr][nc];
-            if(!neighbor.open && !neighbor.mine){
+          let nr=r+rr;
+          let nc=c+cc;
+          if(nr>=0&&nr<size&&nc>=0&&nc<size){
+            let neigh=board[nr][nc];
+            if(!neigh.open && !neigh.mine){
               openCell(nr,nc);
             }
           }
@@ -353,35 +353,34 @@
     }
 
     function showAllMines(){
-      for(let r=0; r<size; r++){
-        for(let c=0; c<size; c++){
+      for(let r=0;r<size;r++){
+        for(let c=0;c<size;c++){
           if(board[r][c].mine){
-            board[r][c].open = true;
+            board[r][c].open=true;
           }
         }
       }
     }
 
     function endGame(win){
-      isGameOver = true;
+      isGameOver=true;
       clearInterval(timerInterval);
       if(win){
-        resultMsg.textContent = `Поздравляем, вы победили! Время: ${timeValue.textContent} сек.`;
+        resultMsg.textContent=`Поздравляем, вы победили! Время: ${timeValue.textContent} сек.`;
       } else {
-        resultMsg.textContent = `Мина! Вы проиграли. Время: ${timeValue.textContent} сек.`;
+        resultMsg.textContent=`Мина! Вы проиграли. Время: ${timeValue.textContent} сек.`;
       }
-      gameOverDiv.style.display = "block";
+      gameOverDiv.style.display="block";
     }
 
     function restartGame(){
-      gameOverDiv.style.display = "none";
+      gameOverDiv.style.display="none";
       initBoard();
       drawBoard();
-      // Сброс таймера
-      startTime = Date.now();
+      startTime=Date.now();
       clearInterval(timerInterval);
-      timerInterval = setInterval(()=>{
-        timeValue.textContent = Math.floor((Date.now()-startTime)/1000);
+      timerInterval=setInterval(()=>{
+        timeValue.textContent=Math.floor((Date.now()-startTime)/1000);
       },1000);
     }
 

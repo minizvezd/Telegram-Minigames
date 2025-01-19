@@ -91,13 +91,14 @@
 </head>
 <body>
   <header>
-    <a class="back-button" href="index.html">Назад</a>
+    <a class="back-button" href="./index.html">Назад</a>
     <h1>Pong</h1>
   </header>
 
   <div class="instructions">
     Управление левой ракеткой: W/S или ↑/↓. На телефоне — свайпы вверх/вниз.<br>
-    Цель: не пропустить мяч за свою ракетку. Правой управляет «ИИ».
+    Цель: не пропустить мяч за свою ракетку. Правой управляет «ИИ».<br>
+    Игра заканчивается, когда кто-то набирает 5 очков.
   </div>
   <div id="score">0 : 0</div>
   <div style="position: relative;">
@@ -115,16 +116,10 @@
     let paddleHeight = 70;
     let paddleWidth = 10;
 
-    let leftPaddleY = canvas.height/2 - paddleHeight/2;
-    let rightPaddleY = canvas.height/2 - paddleHeight/2;
-
-    let ballX = canvas.width/2;
-    let ballY = canvas.height/2;
+    let leftPaddleY, rightPaddleY;
+    let ballX, ballY;
     let ballSize = 8;
-
-    // Начальная скорость
-    let ballSpeedX = 2;
-    let ballSpeedY = 2;
+    let ballSpeedX, ballSpeedY;
 
     let leftScore = 0;
     let rightScore = 0;
@@ -134,13 +129,23 @@
     let moveDown = false;
 
     let isGameOver = false;
-    // Можно задать лимит очков, например 5. 
-    // Достигнут лимит => Game Over.
-    const maxScore = 5; // для примера
+    const maxScore = 5;
+
+    let animationFrameId;
 
     // Свайпы
     let touchStartY = 0;
     const SWIPE_THRESHOLD = 30;
+
+    function initGame(){
+      leftPaddleY = canvas.height/2 - paddleHeight/2;
+      rightPaddleY = canvas.height/2 - paddleHeight/2;
+      ballX = canvas.width/2;
+      ballY = canvas.height/2;
+      ballSpeedX = 2 * (Math.random()>0.5 ? 1 : -1);
+      ballSpeedY = 2 * (Math.random()>0.5 ? 1 : -1);
+      isGameOver = false;
+    }
 
     function update(){
       if(isGameOver) return;
@@ -153,22 +158,21 @@
         leftPaddleY += 5;
       }
 
-      // Простейший ИИ правой ракетки
+      // Простейший ИИ
       let center = rightPaddleY + paddleHeight/2;
       if(center < ballY) {
         rightPaddleY += 3;
       } else {
         rightPaddleY -= 3;
       }
-      // Границы
-      if(rightPaddleY < 0) rightPaddleY = 0;
-      if(rightPaddleY > canvas.height - paddleHeight) rightPaddleY = canvas.height - paddleHeight;
+      if(rightPaddleY<0) rightPaddleY=0;
+      if(rightPaddleY>canvas.height-paddleHeight) rightPaddleY=canvas.height-paddleHeight;
 
-      // Движение мяча
+      // Мяч
       ballX += ballSpeedX;
       ballY += ballSpeedY;
 
-      // Отскок сверху/снизу
+      // Отскок
       if(ballY - ballSize < 0 || ballY + ballSize > canvas.height) {
         ballSpeedY = -ballSpeedY;
       }
@@ -177,7 +181,6 @@
       if(ballX - ballSize < paddleWidth) {
         if(ballY > leftPaddleY && ballY < leftPaddleY + paddleHeight){
           ballSpeedX = -ballSpeedX;
-          // При каждом попадании чуть ускоряем
           ballSpeedX *= 1.05;
           ballSpeedY *= 1.05;
         } else {
@@ -201,25 +204,22 @@
       }
 
       draw();
-      requestAnimationFrame(update);
+      animationFrameId = requestAnimationFrame(update);
     }
 
     function checkScore(){
-      document.getElementById("score").textContent = `${leftScore} : ${rightScore}`;
       if(leftScore >= maxScore || rightScore >= maxScore){
-        // Game Over
         isGameOver = true;
         document.getElementById("finalScore").textContent = `Счёт: ${leftScore} : ${rightScore}`;
         document.getElementById("gameOver").style.display = "block";
       }
     }
 
-    function resetBall() {
+    function resetBall(){
       ballX = canvas.width/2;
       ballY = canvas.height/2;
-      // Сбрасываем скорость
-      ballSpeedX = (Math.random() > 0.5) ? 2 : -2;
-      ballSpeedY = (Math.random() > 0.5) ? 2 : -2;
+      ballSpeedX = 2 * (Math.random()>0.5 ? 1 : -1);
+      ballSpeedY = 2 * (Math.random()>0.5 ? 1 : -1);
     }
 
     function draw(){
@@ -237,40 +237,40 @@
       ctx.arc(ballX, ballY, ballSize, 0, Math.PI*2);
       ctx.fill();
 
-      // Сетка посередине
+      // Центр линия
       ctx.strokeStyle = "#555";
       ctx.beginPath();
       ctx.moveTo(canvas.width/2, 0);
       ctx.lineTo(canvas.width/2, canvas.height);
       ctx.stroke();
 
-      // Текущий счёт
+      // Отображаем счёт
       document.getElementById("score").textContent = `${leftScore} : ${rightScore}`;
     }
 
     function restartGame(){
-      leftScore = 0;
-      rightScore = 0;
-      isGameOver = false;
+      leftScore=0;
+      rightScore=0;
       document.getElementById("gameOver").style.display = "none";
-      resetBall();
-      checkScore();
+      initGame();
+      cancelAnimationFrame(animationFrameId);
+      requestAnimationFrame(update);
     }
 
-    // Управление клавиатурой
+    // Управление клавишами
     document.addEventListener("keydown", e=>{
-      if(e.key === "w" || e.key === "W" || e.key === "ArrowUp"){
+      if(e.key==="w"||e.key==="W"||e.key==="ArrowUp") {
         moveUp = true;
       }
-      if(e.key === "s" || e.key === "S" || e.key === "ArrowDown"){
+      if(e.key==="s"||e.key==="S"||e.key==="ArrowDown") {
         moveDown = true;
       }
     });
     document.addEventListener("keyup", e=>{
-      if(e.key === "w" || e.key === "W" || e.key === "ArrowUp"){
+      if(e.key==="w"||e.key==="W"||e.key==="ArrowUp") {
         moveUp = false;
       }
-      if(e.key === "s" || e.key === "S" || e.key === "ArrowDown"){
+      if(e.key==="s"||e.key==="S"||e.key==="ArrowDown") {
         moveDown = false;
       }
     });
@@ -280,21 +280,23 @@
       touchStartY = e.touches[0].clientY;
     });
     canvas.addEventListener("touchend", e=>{
+      if(isGameOver) return;
       let deltaY = e.changedTouches[0].clientY - touchStartY;
       if(Math.abs(deltaY) > SWIPE_THRESHOLD){
         if(deltaY < 0){
-          // свайп вверх
+          // вверх
           moveUp = true;
-          setTimeout(()=> moveUp=false, 100); 
+          setTimeout(()=> moveUp=false, 100);
         } else {
-          // свайп вниз
+          // вниз
           moveDown = true;
           setTimeout(()=> moveDown=false, 100);
         }
       }
     });
 
-    requestAnimationFrame(update);
+    // Старт
+    restartGame();
   </script>
 </body>
 </html>

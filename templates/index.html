@@ -4,6 +4,9 @@
   <meta charset="UTF-8" />
   <title>Мини-игры</title>
   <style>
+    * {
+      box-sizing: border-box;
+    }
     body {
       margin: 0; 
       padding: 0;
@@ -16,34 +19,41 @@
       padding: 20px;
       text-align: center;
     }
+    h1 {
+      margin: 0;
+      font-size: 24px;
+    }
     main {
       display: flex;
       flex-direction: column;
       align-items: center;
       padding: 30px;
     }
-    h1 {
-      margin: 0;
-      font-size: 24px;
-    }
-    ul {
-      list-style: none;
-      padding: 0;
+    .games {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 20px;
       margin-top: 20px;
     }
-    li {
-      margin: 10px 0;
-    }
-    a {
+    .game-link {
       text-decoration: none;
       color: #fff;
       background: #4CAF50;
-      padding: 10px 20px;
-      border-radius: 5px;
-      transition: background 0.3s;
+      padding: 15px 25px;
+      border-radius: 8px;
+      font-size: 18px;
+      transition: background 0.3s, transform 0.2s;
     }
-    a:hover {
+    .game-link:hover {
       background: #45a049;
+      transform: translateY(-2px);
+    }
+    @media(max-width: 600px){
+      .game-link {
+        font-size: 16px;
+        padding: 10px 15px;
+      }
     }
   </style>
 </head>
@@ -52,13 +62,13 @@
     <h1>Добро пожаловать в мини-игры</h1>
   </header>
   <main>
-    <ul>
-      <li><a href="snake.html">Змейка</a></li>
-      <li><a href="tetris.html">Тетрис</a></li>
-      <li><a href="pong.html">Pong</a></li>
-      <li><a href="2048.html">2048</a></li>
-      <li><a href="minesweeper.html">Сапёр</a></li>
-    </ul>
+    <div class="games">
+      <a class="game-link" href="snake.html">Змейка</a>
+      <a class="game-link" href="tetris.html">Тетрис</a>
+      <a class="game-link" href="pong.html">Pong</a>
+      <a class="game-link" href="2048.html">2048</a>
+      <a class="game-link" href="minesweeper.html">Сапёр</a>
+    </div>
   </main>
 </body>
 </html>

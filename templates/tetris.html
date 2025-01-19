@@ -30,7 +30,7 @@
       text-decoration: none;
       background: #333;
       color: #fff;
-      padding: 5px 10px;
+      padding: 6px 12px;
       border-radius: 4px;
       font-size: 14px;
     }
@@ -41,21 +41,48 @@
       margin: 0;
       font-size: 20px;
     }
+    .instructions {
+      margin: 10px;
+      font-size: 14px;
+      background: #333;
+      padding: 6px 10px;
+      border-radius: 4px;
+      line-height: 1.4;
+    }
     #info {
-      margin-top: 10px;
-      font-size: 18px;
+      margin-top: 5px;
+      font-size: 16px;
     }
     #tetrisCanvas {
       border: 2px solid #999;
       background: #111;
       margin-top: 10px;
+      display: block;
     }
-    .fade-in {
-      animation: fadeIn 0.2s ease forwards;
+    #gameOver {
+      position: absolute;
+      top: 40%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0,0,0,0.8);
+      color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      text-align: center;
+      display: none;
     }
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to   { opacity: 1; }
+    #gameOver button {
+      margin-top: 10px;
+      padding: 8px 16px;
+      background: #f66;
+      border: none;
+      cursor: pointer;
+      color: #fff;
+      border-radius: 5px;
+      font-size: 16px;
+    }
+    #gameOver button:hover {
+      background: #d55;
     }
     @media(max-width: 600px){
       #tetrisCanvas {
@@ -70,10 +97,24 @@
     <a class="back-button" href="index.html">Назад</a>
     <h1>Тетрис</h1>
   </header>
+
+  <div class="instructions">
+    Управление: стрелки или WASD. 
+    <br>Влево/Вправо — сдвиг, Вверх — поворот, Вниз — ускорение падения.
+    <br>На телефоне: свайпы (влево/вправо — сдвиг, вверх — поворот, вниз — ускорение).
+  </div>
+  
   <div id="info">
     Очки: <span id="score">0</span>
   </div>
-  <canvas id="tetrisCanvas" width="200" height="400"></canvas>
+
+  <div style="position: relative;">
+    <canvas id="tetrisCanvas" width="200" height="400"></canvas>
+    <div id="gameOver">
+      <h2 id="finalScore"></h2>
+      <button onclick="restartGame()">Играть снова</button>
+    </div>
+  </div>
 
   <script>
     const canvas = document.getElementById("tetrisCanvas");
@@ -83,18 +124,17 @@
     const ROWS = 20;
     const BLOCK_SIZE = 20;
 
-    // Настройка размеров canvas
-    canvas.width = COLS * BLOCK_SIZE;   
+    canvas.width = COLS * BLOCK_SIZE;
     canvas.height = ROWS * BLOCK_SIZE;
 
     const SHAPES = [
-      [[1,1,1],[0,1,0]],       // T
-      [[1,1],[1,1]],           // O
-      [[1,0,0],[1,1,1]],       // L
-      [[0,0,1],[1,1,1]],       // J
-      [[0,1,1],[1,1,0]],       // S
-      [[1,1,0],[0,1,1]],       // Z
-      [[1,1,1,1]]              // I
+      [[1,1,1],[0,1,0]],  // T
+      [[1,1],[1,1]],      // O
+      [[1,0,0],[1,1,1]],  // L
+      [[0,0,1],[1,1,1]],  // J
+      [[0,1,1],[1,1,0]],  // S
+      [[1,1,0],[0,1,1]],  // Z
+      [[1,1,1,1]]         // I
     ];
     const COLORS = ["cyan","yellow","purple","green","red","blue","orange"];
 
@@ -110,6 +150,13 @@
     let dropCounter = 0;
     let lastTime = 0;
 
+    let isGameOver = false;
+
+    // Свайпы
+    let touchStartX = 0;
+    let touchStartY = 0;
+    const SWIPE_THRESHOLD = 30;
+
     function createMatrix(rows, cols) {
       let matrix = [];
       for (let r=0; r<rows; r++){
@@ -119,52 +166,25 @@
     }
 
     function spawnPiece() {
-      const shapeIndex = Math.floor(Math.random()*SHAPES.length);
-      const shape = SHAPES[shapeIndex];
-      currentPiece = shape.map(row => [...row]);
-      currentColor = COLORS[shapeIndex];
+      const index = Math.floor(Math.random()*SHAPES.length);
+      currentPiece = SHAPES[index].map(row => [...row]);
+      currentColor = COLORS[index];
       currentY = 0;
-      currentX = (COLS/2 | 0) - (currentPiece[0].length / 2 | 0);
-    }
+      currentX = (COLS/2|0) - (currentPiece[0].length/2|0);
 
-    function draw() {
-      ctx.fillStyle = "#111";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-      // Рисуем игровое поле
-      for (let r=0; r<ROWS; r++){
-        for (let c=0; c<COLS; c++){
-          if (board[r][c] !== 0) {
-            drawBlock(c, r, board[r][c]);
-          }
-        }
+      // Если сразу коллизия — Game Over
+      if (collide(board, currentPiece, currentX, currentY)) {
+        gameOver();
       }
-      // Рисуем текущую фигуру
-      if (currentPiece) {
-        for (let r=0; r<currentPiece.length; r++){
-          for (let c=0; c<currentPiece[r].length; c++){
-            if (currentPiece[r][c] !== 0) {
-              drawBlock(currentX + c, currentY + r, currentColor);
-            }
-          }
-        }
-      }
-    }
-
-    function drawBlock(x, y, color) {
-      ctx.fillStyle = color;
-      ctx.fillRect(x*BLOCK_SIZE, y*BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
-      ctx.strokeStyle = "#333";
-      ctx.strokeRect(x*BLOCK_SIZE, y*BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
     }
 
     function collide(board, piece, offX, offY) {
-      for (let r=0; r<piece.length; r++){
-        for (let c=0; c<piece[r].length; c++){
+      for(let r=0; r<piece.length; r++){
+        for(let c=0; c<piece[r].length; c++){
           if (piece[r][c] !== 0) {
-            let ny = offY + r;
-            let nx = offX + c;
-            if (ny < 0 || ny >= ROWS || nx < 0 || nx >= COLS || board[ny][nx] !== 0) {
+            let nr = offY + r;
+            let nc = offX + c;
+            if(nr<0 || nr>=ROWS || nc<0 || nc>=COLS || board[nr][nc] !== 0){
               return true;
             }
           }
@@ -174,9 +194,9 @@
     }
 
     function merge(board, piece, offX, offY, color) {
-      for (let r=0; r<piece.length; r++){
-        for (let c=0; c<piece[r].length; c++){
-          if (piece[r][c] !== 0) {
+      for(let r=0; r<piece.length; r++){
+        for(let c=0; c<piece[r].length; c++){
+          if(piece[r][c] !== 0) {
             board[offY + r][offX + c] = color;
           }
         }
@@ -184,10 +204,10 @@
     }
 
     function rotate(matrix) {
-      let result = [];
-      for (let r=0; r<matrix[0].length; r++){
+      const result = [];
+      for(let r=0; r<matrix[0].length; r++){
         let row = [];
-        for (let c=matrix.length-1; c>=0; c--){
+        for(let c=matrix.length-1; c>=0; c--){
           row.push(matrix[c][r]);
         }
         result.push(row);
@@ -195,43 +215,44 @@
       return result;
     }
 
+    function lineClear() {
+      let lines = 0;
+      for(let r=ROWS-1; r>=0; r--){
+        if(board[r].every(cell => cell !== 0)){
+          board.splice(r,1);
+          board.unshift(new Array(COLS).fill(0));
+          lines++;
+          r++;
+        }
+      }
+      if(lines > 0){
+        score += lines*10;
+      }
+    }
+
     function drop() {
       currentY++;
-      if (collide(board, currentPiece, currentX, currentY)) {
+      if(collide(board, currentPiece, currentX, currentY)){
         currentY--;
         merge(board, currentPiece, currentX, currentY, currentColor);
         lineClear();
         spawnPiece();
-        if (collide(board, currentPiece, currentX, currentY)) {
-          // GameOver (обнулить поле)
-          board = createMatrix(ROWS, COLS);
-          score = 0;
-        }
       }
       dropCounter = 0;
       updateScore();
-    }
-
-    function lineClear() {
-      for (let r=ROWS-1; r>=0; r--){
-        if (board[r].every(cell => cell !== 0)) {
-          board.splice(r, 1);
-          board.unshift(new Array(COLS).fill(0));
-          score += 10;
-        }
-      }
     }
 
     function updateScore() {
       document.getElementById("score").textContent = score;
     }
 
-    function update(time = 0) {
-      const deltaTime = time - lastTime;
+    function update(time=0) {
+      if(isGameOver) return;
+      const delta = time - lastTime;
       lastTime = time;
 
-      dropCounter += deltaTime;
-      if (dropCounter > dropInterval) {
+      dropCounter += delta;
+      if(dropCounter > dropInterval){
         drop();
       }
 
@@ -239,37 +260,115 @@
       requestAnimationFrame(update);
     }
 
+    function draw() {
+      ctx.fillStyle = "#111";
+      ctx.fillRect(0,0,canvas.width,canvas.height);
+
+      // Рисуем поле
+      for(let r=0; r<ROWS; r++){
+        for(let c=0; c<COLS; c++){
+          let val = board[r][c];
+          if(val !== 0){
+            drawBlock(c, r, val);
+          }
+        }
+      }
+
+      // Рисуем текущую фигуру
+      if(currentPiece){
+        for(let r=0; r<currentPiece.length; r++){
+          for(let c=0; c<currentPiece[r].length; c++){
+            if(currentPiece[r][c] !== 0){
+              drawBlock(currentX + c, currentY + r, currentColor);
+            }
+          }
+        }
+      }
+    }
+
+    function drawBlock(x,y,color) {
+      ctx.fillStyle = color;
+      ctx.fillRect(x*BLOCK_SIZE, y*BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
+      ctx.strokeStyle = "#333";
+      ctx.strokeRect(x*BLOCK_SIZE, y*BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
+    }
+
+    function gameOver() {
+      isGameOver = true;
+      document.getElementById("finalScore").textContent = `Игра окончена! Ваш счёт: ${score}`;
+      document.getElementById("gameOver").style.display = "block";
+    }
+
+    function restartGame() {
+      board = createMatrix(ROWS, COLS);
+      score = 0;
+      isGameOver = false;
+      document.getElementById("gameOver").style.display = "none";
+      spawnPiece();
+      updateScore();
+    }
+
     // Управление
-    document.addEventListener("keydown", e => {
-      switch(e.key){
-        case "ArrowLeft":
-          if (!collide(board, currentPiece, currentX-1, currentY)) {
-            currentX--;
-          }
-          break;
-        case "ArrowRight":
-          if (!collide(board, currentPiece, currentX+1, currentY)) {
-            currentX++;
-          }
-          break;
-        case "ArrowDown":
-          drop();
-          break;
-        case "ArrowUp":
-          const rotated = rotate(currentPiece);
-          if (!collide(board, rotated, currentX, currentY)) {
-            currentPiece = rotated;
-          }
-          break;
+    document.addEventListener("keydown", e=>{
+      if(isGameOver) return;
+      if(e.key==="ArrowLeft"||e.key==="a"||e.key==="A"){
+        if(!collide(board, currentPiece, currentX-1, currentY)){
+          currentX--;
+        }
+      } else if(e.key==="ArrowRight"||e.key==="d"||e.key==="D"){
+        if(!collide(board, currentPiece, currentX+1, currentY)){
+          currentX++;
+        }
+      } else if(e.key==="ArrowDown"||e.key==="s"||e.key==="S"){
+        drop();
+      } else if(e.key==="ArrowUp"||e.key==="w"||e.key==="W"){
+        let rotated = rotate(currentPiece);
+        if(!collide(board, rotated, currentX, currentY)){
+          currentPiece = rotated;
+        }
       }
     });
 
-    function start(){
-      spawnPiece();
-      updateScore();
-      update();
-    }
-    start();
+    // Свайпы
+    canvas.addEventListener("touchstart", e=>{
+      let t = e.touches[0];
+      touchStartX = t.clientX;
+      touchStartY = t.clientY;
+    });
+    canvas.addEventListener("touchend", e=>{
+      if(isGameOver) return;
+      let t = e.changedTouches[0];
+      let dx = t.clientX - touchStartX;
+      let dy = t.clientY - touchStartY;
+      if(Math.abs(dx)>Math.abs(dy)){
+        if(dx>SWIPE_THRESHOLD){
+          // вправо
+          if(!collide(board, currentPiece, currentX+1, currentY)){
+            currentX++;
+          }
+        } else if(dx< -SWIPE_THRESHOLD){
+          // влево
+          if(!collide(board, currentPiece, currentX-1, currentY)){
+            currentX--;
+          }
+        }
+      } else {
+        if(dy>SWIPE_THRESHOLD){
+          // вниз
+          drop();
+        } else if(dy< -SWIPE_THRESHOLD){
+          // вверх (поворот)
+          let rotated = rotate(currentPiece);
+          if(!collide(board, rotated, currentX, currentY)){
+            currentPiece = rotated;
+          }
+        }
+      }
+    });
+
+    // Старт
+    restartGame();
+    requestAnimationFrame(update);
   </script>
 </body>
 </html>

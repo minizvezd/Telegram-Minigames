@@ -128,7 +128,7 @@
 </head>
 <body>
   <header>
-    <a class="back-button" href="index.html">Назад</a>
+    <a class="back-button" href="./index.html">Назад</a>
     <h1>2048</h1>
   </header>
 
@@ -334,14 +334,12 @@
       let dy = t.clientY - touchStartY;
       let moved = false;
       if(Math.abs(dx) > Math.abs(dy)){
-        // горизонт
         if(dx > SWIPE_THRESHOLD){
           moved = moveRight();
         } else if(dx < -SWIPE_THRESHOLD){
           moved = moveLeft();
         }
       } else {
-        // вертикаль
         if(dy > SWIPE_THRESHOLD){
           moved = moveDown();
         } else if(dy < -SWIPE_THRESHOLD){
@@ -360,7 +358,6 @@
           if(r < size-1 && board[r][c] === board[r+1][c]) return;
         }
       }
-      // Нет ходов
       gameOverDiv.style.display = "block";
       finalMsg.textContent = `Игра окончена! Ваш счёт: ${score}`;
     }

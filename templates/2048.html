@@ -28,7 +28,7 @@
       text-decoration: none;
       background: #333;
       color: #fff;
-      padding: 5px 10px;
+      padding: 6px 12px;
       border-radius: 4px;
       font-size: 14px;
     }
@@ -38,6 +38,15 @@
     h1 {
       margin: 0;
       font-size: 20px;
+    }
+    .instructions {
+      margin: 10px;
+      font-size: 14px;
+      background: #ccc;
+      padding: 6px 10px;
+      border-radius: 4px;
+      line-height: 1.4;
+      color: #000;
     }
     #score {
       margin: 10px;
@@ -67,8 +76,6 @@
       color: #776e65;
       transition: transform 0.2s, background 0.2s;
     }
-
-    /* Цвета для разных плиток */
     .cell[data-value="2"]    { background: #eee4da; }
     .cell[data-value="4"]    { background: #ede0c8; }
     .cell[data-value="8"]    { background: #f2b179; color: #f9f6f2; }
@@ -81,6 +88,31 @@
     .cell[data-value="1024"] { background: #edc53f; color: #f9f6f2; }
     .cell[data-value="2048"] { background: #edc22e; color: #f9f6f2; }
 
+    #gameOver {
+      position: absolute;
+      top: 40%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0,0,0,0.7);
+      color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      text-align: center;
+      display: none;
+    }
+    #gameOver button {
+      margin-top: 10px;
+      padding: 8px 16px;
+      background: #f66;
+      border: none;
+      cursor: pointer;
+      color: #fff;
+      border-radius: 5px;
+      font-size: 16px;
+    }
+    #gameOver button:hover {
+      background: #d55;
+    }
     @media (max-width: 600px) {
       #board {
         width: 300px;
@@ -96,12 +128,23 @@
 </head>
 <body>
   <header>
-    <a class="back-button" href="/templates/index.html">Назад</a>
+    <a class="back-button" href="index.html">Назад</a>
     <h1>2048</h1>
   </header>
-  
+
+  <div class="instructions">
+    Объединяйте плитки с одинаковыми числами, чтобы получать более крупные числа.
+    <br>Управление: стрелки / WASD, на телефоне — свайпы.
+  </div>
+
   <div id="score">Очки: <span id="scoreVal">0</span></div>
-  <div id="board"></div>
+  <div style="position: relative;">
+    <div id="board"></div>
+    <div id="gameOver">
+      <h2 id="finalMsg"></h2>
+      <button onclick="restartGame()">Играть снова</button>
+    </div>
+  </div>
 
   <script>
     const size = 4;
@@ -110,10 +153,17 @@
 
     const boardElem = document.getElementById("board");
     const scoreVal = document.getElementById("scoreVal");
+    const gameOverDiv = document.getElementById("gameOver");
+    const finalMsg = document.getElementById("finalMsg");
+
+    // Свайпы
+    let touchStartX = 0;
+    let touchStartY = 0;
+    const SWIPE_THRESHOLD = 30;
 
     function init() {
       board = [];
-      for(let i=0; i<size; i++){
+      for(let r=0; r<size; r++){
         board.push(new Array(size).fill(0));
       }
       score = 0;
@@ -122,6 +172,7 @@
       addNewTile();
       addNewTile();
       drawBoard();
+      gameOverDiv.style.display = "none";
     }
 
     function drawBoard() {
@@ -164,36 +215,27 @@
     document.addEventListener("keydown", e => {
       let moved = false;
       switch(e.key){
-        case "ArrowLeft": moved = moveLeft(); break;
-        case "ArrowRight": moved = moveRight(); break;
-        case "ArrowUp": moved = moveUp(); break;
-        case "ArrowDown": moved = moveDown(); break;
+        case "ArrowLeft": case "a": case "A":
+          moved = moveLeft();
+          break;
+        case "ArrowRight": case "d": case "D":
+          moved = moveRight();
+          break;
+        case "ArrowUp": case "w": case "W":
+          moved = moveUp();
+          break;
+        case "ArrowDown": case "s": case "S":
+          moved = moveDown();
+          break;
       }
-      if (moved) {
-        addNewTile();
-        drawBoard();
-        updateScore();
-        checkGameOver();
-      }
+      if (moved) afterMove();
     });
 
-    function compressRow(row){
-      let arr = row.filter(v => v !== 0);
-      while(arr.length < size){
-        arr.push(0);
-      }
-      return arr;
-    }
-
-    function mergeRow(row){
-      for(let i=0; i<size-1; i++){
-        if(row[i] !== 0 && row[i] === row[i+1]){
-          row[i] *= 2;
-          score += row[i];
-          row[i+1] = 0;
-        }
-      }
-      return row;
+    function afterMove(){
+      addNewTile();
+      drawBoard();
+      updateScore();
+      checkGameOver();
     }
 
     function moveLeft(){
@@ -202,14 +244,13 @@
         let newRow = compressRow(board[r]);
         newRow = mergeRow(newRow);
         newRow = compressRow(newRow);
-        if(newRow.some((val, idx) => val !== board[r][idx])) {
+        if(JSON.stringify(newRow) !== JSON.stringify(board[r])){
           moved = true;
         }
         board[r] = newRow;
       }
       return moved;
     }
-
     function moveRight(){
       let moved = false;
       for(let r=0; r<size; r++){
@@ -218,14 +259,13 @@
         rev = mergeRow(rev);
         rev = compressRow(rev);
         rev.reverse();
-        if(rev.some((val, idx) => val !== board[r][idx])) {
+        if(JSON.stringify(rev) !== JSON.stringify(board[r])){
           moved = true;
         }
         board[r] = rev;
       }
       return moved;
     }
-
     function moveUp(){
       let moved = false;
       for(let c=0; c<size; c++){
@@ -233,17 +273,16 @@
         for(let r=0; r<size; r++){
           col.push(board[r][c]);
         }
-        let compressed = compressRow(col);
-        compressed = mergeRow(compressed);
-        compressed = compressRow(compressed);
+        let newCol = compressRow(col);
+        newCol = mergeRow(newCol);
+        newCol = compressRow(newCol);
         for(let r=0; r<size; r++){
-          if(board[r][c] !== compressed[r]) moved = true;
-          board[r][c] = compressed[r];
+          if(board[r][c] !== newCol[r]) moved = true;
+          board[r][c] = newCol[r];
         }
       }
       return moved;
     }
-
     function moveDown(){
       let moved = false;
       for(let c=0; c<size; c++){
@@ -264,16 +303,69 @@
       return moved;
     }
 
+    function compressRow(row){
+      let arr = row.filter(v => v !== 0);
+      while(arr.length < size){
+        arr.push(0);
+      }
+      return arr;
+    }
+
+    function mergeRow(row){
+      for(let i=0; i<size-1; i++){
+        if(row[i] !== 0 && row[i] === row[i+1]){
+          row[i] *= 2;
+          score += row[i];
+          row[i+1] = 0;
+        }
+      }
+      return row;
+    }
+
+    // Свайпы
+    boardElem.addEventListener("touchstart", e=>{
+      let t = e.touches[0];
+      touchStartX = t.clientX;
+      touchStartY = t.clientY;
+    });
+    boardElem.addEventListener("touchend", e=>{
+      let t = e.changedTouches[0];
+      let dx = t.clientX - touchStartX;
+      let dy = t.clientY - touchStartY;
+      let moved = false;
+      if(Math.abs(dx) > Math.abs(dy)){
+        // горизонт
+        if(dx > SWIPE_THRESHOLD){
+          moved = moveRight();
+        } else if(dx < -SWIPE_THRESHOLD){
+          moved = moveLeft();
+        }
+      } else {
+        // вертикаль
+        if(dy > SWIPE_THRESHOLD){
+          moved = moveDown();
+        } else if(dy < -SWIPE_THRESHOLD){
+          moved = moveUp();
+        }
+      }
+      if(moved) afterMove();
+    });
+
     function checkGameOver(){
-      // Если нет места и нет ходов — проигрыш
+      // Если нет ходов
       for(let r=0; r<size; r++){
         for(let c=0; c<size; c++){
-          if(board[r][c] === 0) return;
+          if(board[r][c] === 0) return; // Есть пустые
           if(c < size-1 && board[r][c] === board[r][c+1]) return;
           if(r < size-1 && board[r][c] === board[r+1][c]) return;
         }
       }
-      alert("Игра окончена! Счёт: " + score);
+      // Нет ходов
+      gameOverDiv.style.display = "block";
+      finalMsg.textContent = `Игра окончена! Ваш счёт: ${score}`;
+    }
+
+    function restartGame(){
       init();
     }
 

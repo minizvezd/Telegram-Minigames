@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Сапёр</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <style>
     body {
       margin: 0; 
@@ -12,6 +13,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
+      overflow: hidden;
     }
     header {
       width: 100%;
@@ -47,6 +49,8 @@
       border-radius: 4px;
       line-height: 1.4;
       color: #000;
+      max-width: 500px;
+      text-align: center;
     }
     #info {
       display: flex;
@@ -112,17 +116,27 @@
     #gameOver button:hover {
       background: #d55;
     }
+    @media(max-width:600px){
+      #board {
+        grid-template-columns: repeat(8, 35px);
+      }
+      .cell {
+        width: 35px;
+        height: 35px;
+        font-size: 16px;
+      }
+    }
   </style>
 </head>
 <body>
   <header>
-    <a class="back-button" href="/">Назад</a>
+    <a class="back-button" href="./index.html">Назад</a>
     <h1>Сапёр 8×8</h1>
   </header>
 
   <div class="instructions">
-    ЛКМ (тап) — открыть ячейку, ПКМ (долгий тап) — поставить флажок.<br>
-    Осторожно, если откроете мину — проиграете.
+    На ПК: ЛКМ — открыть ячейку, ПКМ — поставить флажок.<br>
+    На телефоне: быстрый тап — открыть, **долгий тап (удержание ~0.4с)** — поставить/убрать флажок.
   </div>
 
   <div id="info">
@@ -153,6 +167,10 @@
     let startTime = 0;
     let timerInterval = null;
     let isGameOver = false;
+
+    // Для long press
+    let touchTimeout = null;
+    let touchedCell = null;
 
     function initBoard(){
       board = [];
@@ -229,30 +247,63 @@
           }
 
           boardElem.appendChild(cellDiv);
+
+          // Для мобильных (long press)
+          cellDiv.addEventListener("touchstart", e => onTouchStart(e, cellDiv));
+          cellDiv.addEventListener("touchend", e => onTouchEnd(e, cellDiv));
+          // Для PC
+          cellDiv.addEventListener("click", onClickCell);
         }
       }
     }
 
-    boardElem.addEventListener("click", e => {
+    function onClickCell(e){
       if(isGameOver) return;
-      const target = e.target;
-      if(!target.classList.contains("cell")) return;
-      let r = +target.dataset.r;
-      let c = +target.dataset.c;
+      let r = +e.target.dataset.r;
+      let c = +e.target.dataset.c;
+      // ЛКМ => открыть ячейку
       openCell(r,c);
       drawBoard();
-    });
+    }
 
+    // ПК: правый клик => поставить флажок
     boardElem.addEventListener("contextmenu", e => {
       e.preventDefault();
       if(isGameOver) return;
-      const target = e.target;
-      if(!target.classList.contains("cell")) return;
-      let r = +target.dataset.r;
-      let c = +target.dataset.c;
+      if(!e.target.classList.contains("cell")) return;
+      let r = +e.target.dataset.r;
+      let c = +e.target.dataset.c;
       toggleFlag(r,c);
       drawBoard();
     });
+
+    // Мобильная логика long press
+    function onTouchStart(e, cellDiv){
+      if(isGameOver) return;
+      touchedCell = cellDiv;
+      touchTimeout = setTimeout(()=>{
+        // Считаем, что это long press => флажок
+        if(touchedCell){
+          let r = +touchedCell.dataset.r;
+          let c = +touchedCell.dataset.c;
+          toggleFlag(r,c);
+          drawBoard();
+          touchedCell = null;
+        }
+      }, 400); // 0.4s
+    }
+    function onTouchEnd(e, cellDiv){
+      if(isGameOver) return;
+      if(touchTimeout) clearTimeout(touchTimeout);
+      if(touchedCell){
+        // Значит это короткий тап => открыть клетку
+        let r = +cellDiv.dataset.r;
+        let c = +cellDiv.dataset.c;
+        openCell(r,c);
+        drawBoard();
+      }
+      touchedCell = null;
+    }
 
     function openCell(r,c){
       let cell = board[r][c];
@@ -261,7 +312,6 @@
       cellsLeft--;
 
       if(cell.mine){
-        // Проигрыш
         showAllMines();
         endGame(false);
         return;
@@ -270,7 +320,6 @@
         floodOpen(r,c);
       }
       if(cellsLeft === mineTotal){
-        // Выигрыш
         endGame(true);
       }
     }
@@ -336,7 +385,6 @@
       },1000);
     }
 
-    // Запуск
     function start(){
       restartGame();
     }

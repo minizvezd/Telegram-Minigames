@@ -4,113 +4,117 @@
   <meta charset="UTF-8">
   <title>Pong</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+
   <style>
-    body {
-      margin: 0;
-      padding: 0;
-      background: #000;
-      color: #fff;
-      font-family: sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      -webkit-touch-callout: none;
-      -webkit-user-select: none;
-      -moz-user-select: none;
-      -ms-user-select: none;
-      user-select: none;
-      touch-action: none;
+    html, body {
+      margin:0;
+      padding:0;
+      background:#000;
+      color:#fff;
+      font-family:sans-serif;
+      overscroll-behavior:none;
+      -webkit-overflow-scrolling:none;
+      -webkit-touch-callout:none;
+      -webkit-user-select:none;
+      -moz-user-select:none;
+      -ms-user-select:none;
+      user-select:none;
+      touch-action:none;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
     }
     header {
-      width: 100%;
-      background: #4CAF50;
-      color: #fff;
-      text-align: center;
-      padding: 10px;
-      position: relative;
+      width:100%;
+      background:#4CAF50;
+      color:#fff;
+      text-align:center;
+      padding:10px;
+      position:relative;
     }
     .back-button {
-      position: absolute;
-      left: 10px;
-      top: 10px;
-      text-decoration: none;
-      background: #333;
-      color: #fff;
-      padding: 6px 12px;
-      border-radius: 4px;
-      font-size: 14px;
+      position:absolute;
+      left:10px;
+      top:10px;
+      text-decoration:none;
+      background:#333;
+      color:#fff;
+      padding:6px12px;
+      border-radius:4px;
+      font-size:14px;
     }
     .back-button:hover {
-      background: #555;
+      background:#555;
     }
     h1 {
-      margin: 0;
-      font-size: 20px;
+      margin:0;
+      font-size:20px;
     }
     .instructions {
-      margin: 10px;
-      font-size: 14px;
-      background: #333;
-      padding: 6px 10px;
-      border-radius: 4px;
-      line-height: 1.4;
-      max-width: 500px;
-      text-align: center;
+      margin:10px;
+      font-size:14px;
+      background:#333;
+      padding:6px10px;
+      border-radius:4px;
+      line-height:1.4;
+      max-width:500px;
+      text-align:center;
     }
     #score {
-      margin: 10px;
-      font-size: 20px;
+      margin:10px;
+      font-size:20px;
     }
     canvas {
-      border: 2px solid #ccc;
-      background: #111;
-      display: block;
+      border:2px solid #ccc;
+      background:#111;
+      display:block;
     }
     #gameOver {
-      position: absolute;
-      top: 40%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: rgba(0,0,0,0.8);
-      color: #fff;
-      padding: 20px;
-      border-radius: 8px;
-      text-align: center;
-      display: none;
+      position:absolute;
+      top:40%;
+      left:50%;
+      transform:translate(-50%,-50%);
+      background:rgba(0,0,0,0.8);
+      color:#fff;
+      padding:20px;
+      border-radius:8px;
+      text-align:center;
+      display:none;
     }
     #gameOver button {
-      margin-top: 10px;
-      padding: 8px 16px;
-      background: #f66;
-      border: none;
-      cursor: pointer;
-      color: #fff;
-      border-radius: 5px;
-      font-size: 16px;
+      margin-top:10px;
+      padding:8px16px;
+      background:#f66;
+      border:none;
+      cursor:pointer;
+      color:#fff;
+      border-radius:5px;
+      font-size:16px;
     }
     #gameOver button:hover {
-      background: #d55;
+      background:#d55;
     }
-    @media(max-width:600px) {
+    @media(max-width:600px){
       canvas {
-        width: 300px !important;
-        height: 200px !important;
+        width:300px !important;
+        height:200px !important;
       }
     }
   </style>
 </head>
 <body>
+
   <header>
     <a class="back-button" href="/">Назад</a>
     <h1>Pong</h1>
   </header>
 
   <div class="instructions">
-    Управление левой ракеткой: W/S или ↑/↓. На телефоне — свайпы вверх/вниз.<br>
-    Цель: не пропустить мяч. Игра заканчивается при 5 очках.
+    Управление левой ракеткой: W/S или ↑/↓. На телефоне — свайпы вверх/вниз.
+    <br>Игра заканчивается при 5 очках.
   </div>
   <div id="score">0 : 0</div>
-  <div style="position: relative;">
+  <div style="position:relative;">
     <canvas id="pongCanvas" width="600" height="400"></canvas>
     <div id="gameOver">
       <h2 id="finalScore">Счёт:</h2>
@@ -119,72 +123,72 @@
   </div>
 
   <script>
-    const canvas = document.getElementById("pongCanvas");
-    const ctx = canvas.getContext("2d");
+    // Блокируем скролл/выделения
+    document.addEventListener("touchmove", e=>e.preventDefault(), {passive:false});
+    document.addEventListener("selectstart", e=>e.preventDefault());
 
-    let paddleHeight = 70;
-    let paddleWidth = 10;
+    const canvas=document.getElementById("pongCanvas");
+    const ctx=canvas.getContext("2d");
+
+    let paddleHeight=70;
+    let paddleWidth=10;
 
     let leftPaddleY, rightPaddleY;
     let ballX, ballY;
-    let ballSize = 8;
+    let ballSize=8;
     let ballSpeedX, ballSpeedY;
+    let leftScore=0;
+    let rightScore=0;
 
-    let leftScore = 0;
-    let rightScore = 0;
-
-    let moveUp = false;
-    let moveDown = false;
-
-    let isGameOver = false;
-    const maxScore = 5;
-
+    let moveUp=false, moveDown=false;
+    let isGameOver=false;
+    const maxScore=5;
     let animationFrameId;
 
-    let touchStartY = 0;
-    const SWIPE_THRESHOLD = 30;
+    let touchStartY=0;
+    const SWIPE_THRESHOLD=30;
 
     function initGame(){
-      leftPaddleY = canvas.height/2 - paddleHeight/2;
-      rightPaddleY = canvas.height/2 - paddleHeight/2;
-      ballX = canvas.width/2;
-      ballY = canvas.height/2;
-      ballSpeedX = 2 * (Math.random()>0.5 ? 1 : -1);
-      ballSpeedY = 2 * (Math.random()>0.5 ? 1 : -1);
-      isGameOver = false;
+      leftPaddleY=canvas.height/2 - paddleHeight/2;
+      rightPaddleY=canvas.height/2 - paddleHeight/2;
+      ballX=canvas.width/2;
+      ballY=canvas.height/2;
+      ballSpeedX=2*(Math.random()>0.5?1:-1);
+      ballSpeedY=2*(Math.random()>0.5?1:-1);
+      isGameOver=false;
     }
 
     function update(){
-      if(isGameOver) return;
+      if(isGameOver)return;
 
-      // движение левой ракетки
+      // левой ракеткой
       if(moveUp && leftPaddleY>0){
         leftPaddleY-=5;
       }
       if(moveDown && leftPaddleY<canvas.height-paddleHeight){
         leftPaddleY+=5;
       }
-      // "ИИ" правой ракетки
+      // "ИИ"
       let center=rightPaddleY+paddleHeight/2;
       if(center<ballY){
         rightPaddleY+=3;
       } else{
         rightPaddleY-=3;
       }
-      if(rightPaddleY<0) rightPaddleY=0;
+      if(rightPaddleY<0)rightPaddleY=0;
       if(rightPaddleY>canvas.height-paddleHeight) rightPaddleY=canvas.height-paddleHeight;
 
       // мяч
       ballX+=ballSpeedX;
       ballY+=ballSpeedY;
 
-      // отскок сверху/снизу
-      if(ballY - ballSize<0 || ballY+ballSize>canvas.height){
+      // отскок
+      if(ballY-ballSize<0|| ballY+ballSize>canvas.height){
         ballSpeedY=-ballSpeedY;
       }
 
-      // левая ракетка
-      if(ballX - ballSize< paddleWidth){
+      // левая
+      if(ballX-ballSize< paddleWidth){
         if(ballY>leftPaddleY && ballY<leftPaddleY+paddleHeight){
           ballSpeedX=-ballSpeedX;
           ballSpeedX*=1.05;
@@ -196,8 +200,8 @@
         }
       }
 
-      // правая ракетка
-      if(ballX + ballSize> canvas.width - paddleWidth){
+      // правая
+      if(ballX+ballSize> canvas.width - paddleWidth){
         if(ballY>rightPaddleY && ballY<rightPaddleY+paddleHeight){
           ballSpeedX=-ballSpeedX;
           ballSpeedX*=1.05;
@@ -214,7 +218,7 @@
     }
 
     function checkScore(){
-      if(leftScore>=maxScore || rightScore>=maxScore){
+      if(leftScore>=maxScore|| rightScore>=maxScore){
         isGameOver=true;
         document.getElementById("finalScore").textContent=`Счёт: ${leftScore} : ${rightScore}`;
         document.getElementById("gameOver").style.display="block";
@@ -236,14 +240,14 @@
       ctx.fillRect(0,leftPaddleY,paddleWidth,paddleHeight);
 
       // правая ракетка
-      ctx.fillRect(canvas.width-paddleWidth, rightPaddleY,paddleWidth,paddleHeight);
+      ctx.fillRect(canvas.width-paddleWidth,rightPaddleY,paddleWidth,paddleHeight);
 
       // мяч
       ctx.beginPath();
-      ctx.arc(ballX,ballY, ballSize,0,Math.PI*2);
+      ctx.arc(ballX,ballY,ballSize,0,Math.PI*2);
       ctx.fill();
 
-      // центр линия
+      // линия
       ctx.strokeStyle="#555";
       ctx.beginPath();
       ctx.moveTo(canvas.width/2,0);
@@ -262,20 +266,20 @@
       requestAnimationFrame(update);
     }
 
-    // управление
+    // клавиатура
     document.addEventListener("keydown", e=>{
-      if(e.key==="w"||e.key==="W"||e.key==="ArrowUp"){
+      if(e.key==="w"||e.key==="W"|| e.key==="ArrowUp"){
         moveUp=true;
       }
-      if(e.key==="s"||e.key==="S"||e.key==="ArrowDown"){
+      if(e.key==="s"||e.key==="S"|| e.key==="ArrowDown"){
         moveDown=true;
       }
     });
     document.addEventListener("keyup", e=>{
-      if(e.key==="w"||e.key==="W"||e.key==="ArrowUp"){
+      if(e.key==="w"||e.key==="W"|| e.key==="ArrowUp"){
         moveUp=false;
       }
-      if(e.key==="s"||e.key==="S"||e.key==="ArrowDown"){
+      if(e.key==="s"||e.key==="S"|| e.key==="ArrowDown"){
         moveDown=false;
       }
     });
@@ -286,7 +290,7 @@
     });
     canvas.addEventListener("touchend", e=>{
       if(isGameOver)return;
-      let deltaY=e.changedTouches[0].clientY - touchStartY;
+      let deltaY=e.changedTouches[0].clientY-touchStartY;
       if(Math.abs(deltaY)>SWIPE_THRESHOLD){
         if(deltaY<0){
           moveUp=true;
@@ -298,8 +302,8 @@
       }
     });
 
-    // старт
     restartGame();
   </script>
+
 </body>
 </html>

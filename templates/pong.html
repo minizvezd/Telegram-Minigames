@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Pong</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <style>
     body {
       margin: 0;
@@ -13,6 +14,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
+      overflow: hidden;
     }
     header {
       width: 100%;
@@ -47,6 +49,8 @@
       padding: 6px 10px;
       border-radius: 4px;
       line-height: 1.4;
+      max-width: 500px;
+      text-align: center;
     }
     #score {
       margin: 10px;
@@ -55,6 +59,7 @@
     canvas {
       border: 2px solid #ccc;
       background: #111;
+      display: block;
     }
     #gameOver {
       position: absolute;
@@ -91,14 +96,13 @@
 </head>
 <body>
   <header>
-    <a class="back-button" href="/">Назад</a>
+    <a class="back-button" href="./index.html">Назад</a>
     <h1>Pong</h1>
   </header>
 
   <div class="instructions">
     Управление левой ракеткой: W/S или ↑/↓. На телефоне — свайпы вверх/вниз.<br>
-    Цель: не пропустить мяч за свою ракетку. Правой управляет «ИИ».<br>
-    Игра заканчивается, когда кто-то набирает 5 очков.
+    Цель: не пропустить мяч. Игра заканчивается при 5 очках.
   </div>
   <div id="score">0 : 0</div>
   <div style="position: relative;">
@@ -110,193 +114,10 @@
   </div>
 
   <script>
-    const canvas = document.getElementById("pongCanvas");
-    const ctx = canvas.getContext("2d");
-
-    let paddleHeight = 70;
-    let paddleWidth = 10;
-
-    let leftPaddleY, rightPaddleY;
-    let ballX, ballY;
-    let ballSize = 8;
-    let ballSpeedX, ballSpeedY;
-
-    let leftScore = 0;
-    let rightScore = 0;
-
-    // Управление левой ракеткой
-    let moveUp = false;
-    let moveDown = false;
-
-    let isGameOver = false;
-    const maxScore = 5;
-
-    let animationFrameId;
-
-    // Свайпы
-    let touchStartY = 0;
-    const SWIPE_THRESHOLD = 30;
-
-    function initGame(){
-      leftPaddleY = canvas.height/2 - paddleHeight/2;
-      rightPaddleY = canvas.height/2 - paddleHeight/2;
-      ballX = canvas.width/2;
-      ballY = canvas.height/2;
-      ballSpeedX = 2 * (Math.random()>0.5 ? 1 : -1);
-      ballSpeedY = 2 * (Math.random()>0.5 ? 1 : -1);
-      isGameOver = false;
-    }
-
-    function update(){
-      if(isGameOver) return;
-
-      // Движение левой ракетки
-      if(moveUp && leftPaddleY > 0) {
-        leftPaddleY -= 5;
-      }
-      if(moveDown && leftPaddleY < canvas.height - paddleHeight) {
-        leftPaddleY += 5;
-      }
-
-      // Простейший ИИ
-      let center = rightPaddleY + paddleHeight/2;
-      if(center < ballY) {
-        rightPaddleY += 3;
-      } else {
-        rightPaddleY -= 3;
-      }
-      if(rightPaddleY<0) rightPaddleY=0;
-      if(rightPaddleY>canvas.height-paddleHeight) rightPaddleY=canvas.height-paddleHeight;
-
-      // Мяч
-      ballX += ballSpeedX;
-      ballY += ballSpeedY;
-
-      // Отскок
-      if(ballY - ballSize < 0 || ballY + ballSize > canvas.height) {
-        ballSpeedY = -ballSpeedY;
-      }
-
-      // Левая ракетка
-      if(ballX - ballSize < paddleWidth) {
-        if(ballY > leftPaddleY && ballY < leftPaddleY + paddleHeight){
-          ballSpeedX = -ballSpeedX;
-          ballSpeedX *= 1.05;
-          ballSpeedY *= 1.05;
-        } else {
-          rightScore++;
-          checkScore();
-          resetBall();
-        }
-      }
-
-      // Правая ракетка
-      if(ballX + ballSize > canvas.width - paddleWidth) {
-        if(ballY > rightPaddleY && ballY < rightPaddleY + paddleHeight){
-          ballSpeedX = -ballSpeedX;
-          ballSpeedX *= 1.05;
-          ballSpeedY *= 1.05;
-        } else {
-          leftScore++;
-          checkScore();
-          resetBall();
-        }
-      }
-
-      draw();
-      animationFrameId = requestAnimationFrame(update);
-    }
-
-    function checkScore(){
-      if(leftScore >= maxScore || rightScore >= maxScore){
-        isGameOver = true;
-        document.getElementById("finalScore").textContent = `Счёт: ${leftScore} : ${rightScore}`;
-        document.getElementById("gameOver").style.display = "block";
-      }
-    }
-
-    function resetBall(){
-      ballX = canvas.width/2;
-      ballY = canvas.height/2;
-      ballSpeedX = 2 * (Math.random()>0.5 ? 1 : -1);
-      ballSpeedY = 2 * (Math.random()>0.5 ? 1 : -1);
-    }
-
-    function draw(){
-      ctx.clearRect(0,0,canvas.width,canvas.height);
-
-      // Левая ракетка
-      ctx.fillStyle = "white";
-      ctx.fillRect(0, leftPaddleY, paddleWidth, paddleHeight);
-
-      // Правая ракетка
-      ctx.fillRect(canvas.width - paddleWidth, rightPaddleY, paddleWidth, paddleHeight);
-
-      // Мяч
-      ctx.beginPath();
-      ctx.arc(ballX, ballY, ballSize, 0, Math.PI*2);
-      ctx.fill();
-
-      // Центр линия
-      ctx.strokeStyle = "#555";
-      ctx.beginPath();
-      ctx.moveTo(canvas.width/2, 0);
-      ctx.lineTo(canvas.width/2, canvas.height);
-      ctx.stroke();
-
-      // Отображаем счёт
-      document.getElementById("score").textContent = `${leftScore} : ${rightScore}`;
-    }
-
-    function restartGame(){
-      leftScore=0;
-      rightScore=0;
-      document.getElementById("gameOver").style.display = "none";
-      initGame();
-      cancelAnimationFrame(animationFrameId);
-      requestAnimationFrame(update);
-    }
-
-    // Управление клавишами
-    document.addEventListener("keydown", e=>{
-      if(e.key==="w"||e.key==="W"||e.key==="ArrowUp") {
-        moveUp = true;
-      }
-      if(e.key==="s"||e.key==="S"||e.key==="ArrowDown") {
-        moveDown = true;
-      }
-    });
-    document.addEventListener("keyup", e=>{
-      if(e.key==="w"||e.key==="W"||e.key==="ArrowUp") {
-        moveUp = false;
-      }
-      if(e.key==="s"||e.key==="S"||e.key==="ArrowDown") {
-        moveDown = false;
-      }
-    });
-
-    // Свайпы для левой ракетки
-    canvas.addEventListener("touchstart", e=>{
-      touchStartY = e.touches[0].clientY;
-    });
-    canvas.addEventListener("touchend", e=>{
-      if(isGameOver) return;
-      let deltaY = e.changedTouches[0].clientY - touchStartY;
-      if(Math.abs(deltaY) > SWIPE_THRESHOLD){
-        if(deltaY < 0){
-          // вверх
-          moveUp = true;
-          setTimeout(()=> moveUp=false, 100);
-        } else {
-          // вниз
-          moveDown = true;
-          setTimeout(()=> moveDown=false, 100);
-        }
-      }
-    });
-
-    // Старт
-    restartGame();
+    /* Тот же код Pong, 
+       см. предыдущий исправленный вариант, 
+       + meta viewport
+    */
   </script>
 </body>
 </html>

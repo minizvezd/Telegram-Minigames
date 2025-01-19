@@ -7,98 +7,102 @@
 
   <style>
     html, body {
-      margin: 0;
-      padding: 0;
-      background: #222;
-      color: #fff;
-      font-family: sans-serif;
-      overscroll-behavior: none;
-      -webkit-overflow-scrolling: none;
-      -webkit-touch-callout: none;
-      -webkit-user-select: none;
-      -moz-user-select: none;
-      -ms-user-select: none;
-      user-select: none;
-      touch-action: none;
+      margin:0;
+      padding:0;
+      background:#222;
+      color:#fff;
+      font-family:sans-serif;
+      overscroll-behavior:none;
+      -webkit-overflow-scrolling:none;
+      -webkit-touch-callout:none;
+      -webkit-user-select:none;
+      -moz-user-select:none;
+      -ms-user-select:none;
+      user-select:none;
+      touch-action:none;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
     }
     header {
-      width: 100%;
-      background: #4CAF50;
-      padding: 10px;
-      text-align: center;
-      color: #fff;
-      position: relative;
+      width:100%;
+      background:#4CAF50;
+      color:#fff;
+      text-align:center;
+      padding:10px;
+      position:relative;
     }
     .back-button {
-      position: absolute;
-      left: 10px;
-      top: 10px;
-      text-decoration: none;
-      background: #333;
-      color: #fff;
-      padding: 6px 12px;
-      border-radius: 4px;
-      font-size: 14px;
-      transition: background 0.3s;
+      position:absolute;
+      left:10px;
+      top:10px;
+      text-decoration:none;
+      background:#333;
+      color:#fff;
+      padding:6px12px;
+      border-radius:4px;
+      font-size:14px;
     }
-    .back-button:hover {
-      background: #555;
+    .back-button:hover{
+      background:#555;
     }
-    h1 {
-      margin: 0;
-      font-size: 20px;
+    h1{
+      margin:0;
+      font-size:20px;
     }
-    .instructions {
-      margin: 10px;
-      font-size: 14px;
-      background: #333;
-      padding: 6px 10px;
-      border-radius: 4px;
-      line-height: 1.4;
-      max-width: 500px;
-      text-align: center;
+    .instructions{
+      margin:10px;
+      font-size:14px;
+      background:#333;
+      padding:6px10px;
+      border-radius:4px;
+      line-height:1.4;
+      max-width:500px;
+      text-align:center;
     }
-    #score {
-      margin: 8px 0;
+    #score{
+      margin:8px0;
     }
-    #gameContainer {
-      position: relative;
-      margin: 10px auto;
+    #gameContainer{
+      position:relative;
+      margin:10px auto;
+      display:flex;
+      justify-content:center; /* центрируем */
     }
-    canvas {
-      background: #111;
-      border: 2px solid #555;
-      display: block;
+    canvas{
+      background:#111;
+      border:2px solid #555;
+      display:block;
     }
-    #gameOver {
-      position: absolute;
-      top: 40%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background: rgba(0,0,0,0.8);
-      color: #fff;
-      padding: 20px;
-      border-radius: 8px;
-      text-align: center;
-      display: none;
+    #gameOver{
+      position:absolute;
+      top:40%;
+      left:50%;
+      transform:translate(-50%,-50%);
+      background:rgba(0,0,0,0.8);
+      color:#fff;
+      padding:20px;
+      border-radius:8px;
+      text-align:center;
+      display:none;
     }
-    #gameOver button {
-      margin-top: 10px;
-      padding: 8px 16px;
-      background: #f66;
-      border: none;
-      cursor: pointer;
-      color: #fff;
-      border-radius: 5px;
-      font-size: 16px;
+    #gameOver button{
+      margin-top:10px;
+      padding:8px16px;
+      background:#f66;
+      border:none;
+      cursor:pointer;
+      color:#fff;
+      border-radius:5px;
+      font-size:16px;
     }
-    #gameOver button:hover {
-      background: #d55;
+    #gameOver button:hover{
+      background:#d55;
     }
-    @media(max-width: 600px){
+    @media(max-width:600px){
       canvas {
-        width: 300px;
-        height: 300px;
+        width:300px;
+        height:300px;
       }
     }
   </style>
@@ -106,6 +110,7 @@
 <body>
 
   <header>
+    <!-- Кнопка назад ведёт на / -->
     <a class="back-button" href="/">Назад</a>
     <h1>Змейка</h1>
   </header>
@@ -125,56 +130,49 @@
   </div>
 
   <script>
-    // Отключаем скролл / выделение
-    document.addEventListener("touchmove", e => e.preventDefault(), { passive: false });
-    document.addEventListener("selectstart", e => e.preventDefault());
+    document.addEventListener("touchmove", e => e.preventDefault(), { passive:false });
+    document.addEventListener("selectstart", e=> e.preventDefault());
 
-    const canvas = document.getElementById("gameCanvas");
-    const ctx = canvas.getContext("2d");
+    const canvas=document.getElementById("gameCanvas");
+    const ctx=canvas.getContext("2d");
 
-    const scoreValue = document.getElementById("scoreValue");
-    const gameOverDiv = document.getElementById("gameOver");
-    const finalMessage = document.getElementById("finalMessage");
+    const scoreValue=document.getElementById("scoreValue");
+    const gameOverDiv=document.getElementById("gameOver");
+    const finalMessage=document.getElementById("finalMessage");
 
-    const gridSize = 20;
-    let snake = [{x: 10, y: 10}];
-    let vx = 1, vy = 0;
-    let food = {x: 5, y: 5};
-    let score = 0;
+    const gridSize=20;
+    let snake=[{x:10,y:10}];
+    let vx=1,vy=0;
+    let food={x:5,y:5};
+    let score=0;
+    let interval=200;
+    let gameInterval=null;
+    let isGameOver=false;
 
-    let interval = 200; 
-    let gameInterval = null;
-    let isGameOver = false;
-
-    let touchStartX=0;
-    let touchStartY=0;
+    let touchStartX=0,touchStartY=0;
     const SWIPE_THRESHOLD=30;
 
-    function startGame() {
-      snake = [{x: 10, y: 10}];
-      vx = 1; 
-      vy = 0;
-      score = 0;
-      interval = 200;
-      isGameOver = false;
-      
+    function startGame(){
+      snake=[{x:10,y:10}];
+      vx=1;vy=0;
+      score=0;
+      interval=200;
+      isGameOver=false;
+
       randomFood();
       updateScore();
-      gameOverDiv.style.display = "none";
+      gameOverDiv.style.display="none";
 
-      if (gameInterval) clearInterval(gameInterval);
-      gameInterval = setInterval(gameLoop, interval);
+      if(gameInterval)clearInterval(gameInterval);
+      gameInterval=setInterval(gameLoop,interval);
     }
 
-    function gameLoop() {
-      let head = { x: snake[0].x + vx, y: snake[0].y + vy };
-
-      // Столкновение со стеной?
-      if (head.x<0 || head.x>=canvas.width/gridSize ||
-          head.y<0 || head.y>=canvas.height/gridSize){
+    function gameLoop(){
+      let head={x:snake[0].x+vx, y:snake[0].y+vy};
+      if(head.x<0|| head.x>=canvas.width/gridSize||
+         head.y<0|| head.y>=canvas.height/gridSize){
         return gameOverFunc();
       }
-      // Столкновение с хвостом?
       for(let i=0;i<snake.length;i++){
         if(snake[i].x===head.x && snake[i].y===head.y){
           return gameOverFunc();
@@ -187,7 +185,7 @@
         updateScore();
         interval=Math.max(50, interval-5);
         clearInterval(gameInterval);
-        gameInterval=setInterval(gameLoop, interval);
+        gameInterval=setInterval(gameLoop,interval);
         randomFood();
       } else {
         snake.pop();
@@ -201,12 +199,12 @@
 
       for(let i=0;i<snake.length;i++){
         ctx.fillStyle=(i===0)?"#0f0":"#2f2";
-        ctx.fillRect(snake[i].x*gridSize, snake[i].y*gridSize, gridSize-1, gridSize-1);
+        ctx.fillRect(snake[i].x*gridSize, snake[i].y*gridSize,gridSize-1,gridSize-1);
       }
 
       ctx.fillStyle="red";
       ctx.beginPath();
-      ctx.arc((food.x+0.5)*gridSize, (food.y+0.5)*gridSize, gridSize/2-2,0,Math.PI*2);
+      ctx.arc((food.x+0.5)*gridSize,(food.y+0.5)*gridSize,gridSize/2-2,0,Math.PI*2);
       ctx.fill();
     }
 
@@ -216,11 +214,9 @@
       finalMessage.textContent=`Игра окончена! Счёт: ${score}`;
       gameOverDiv.style.display="block";
     }
-
     function updateScore(){
       scoreValue.textContent=score;
     }
-
     function restartGame(){
       startGame();
     }
@@ -229,26 +225,24 @@
       food.y=Math.floor(Math.random()*(canvas.height/gridSize));
     }
 
-    // Клавиатура
     document.addEventListener("keydown", e=>{
       if(isGameOver)return;
       switch(e.key){
         case"ArrowLeft":case"a":case"A":
-          if(vx!==1){ vx=-1; vy=0; }
+          if(vx!==1){ vx=-1;vy=0;}
           break;
         case"ArrowRight":case"d":case"D":
-          if(vx!==-1){ vx=1; vy=0; }
+          if(vx!==-1){vx=1;vy=0;}
           break;
         case"ArrowUp":case"w":case"W":
-          if(vy!==1){ vy=-1; vx=0; }
+          if(vy!==1){ vy=-1;vx=0;}
           break;
         case"ArrowDown":case"s":case"S":
-          if(vy!==-1){ vy=1; vx=0; }
+          if(vy!==-1){vy=1;vx=0;}
           break;
       }
     });
 
-    // Свайпы
     canvas.addEventListener("touchstart", e=>{
       let t=e.touches[0];
       touchStartX=t.clientX;
@@ -261,21 +255,20 @@
       let dy=t.clientY - touchStartY;
       if(Math.abs(dx)>Math.abs(dy)){
         if(dx>SWIPE_THRESHOLD){
-          if(vx!==-1){ vx=1; vy=0;}
+          if(vx!==-1){vx=1;vy=0;}
         } else if(dx< -SWIPE_THRESHOLD){
-          if(vx!==1){ vx=-1; vy=0;}
+          if(vx!==1){vx=-1;vy=0;}
         }
       } else {
         if(dy>SWIPE_THRESHOLD){
-          if(vy!==-1){ vy=1; vx=0;}
+          if(vy!==-1){vy=1;vx=0;}
         } else if(dy< -SWIPE_THRESHOLD){
-          if(vy!==1){ vy=-1; vx=0;}
+          if(vy!==1){vy=-1;vx=0;}
         }
       }
     });
 
     startGame();
   </script>
-
 </body>
 </html>

@@ -371,6 +371,21 @@
       clearInterval(timerInterval);
       if(win){
         resultMsg.textContent=`Поздравляем, вы победили! Время: ${timeValue.textContent} сек.`;
+        const time = parseInt(timeValue.textContent, 10);
+        const urlParams = new URLSearchParams(window.location.search);
+        const userId = urlParams.get('user_id');
+        const username = urlParams.get('username');
+
+        fetch('/api/record', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: userId,
+            username: username,
+            game_type: 'minesweeper',
+            score: time
+          })
+        });
       } else {
         resultMsg.textContent=`Мина! Вы проиграли. Время: ${timeValue.textContent} сек.`;
       }

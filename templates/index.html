@@ -86,6 +86,22 @@
   </main>
 
   <script>
+    // Получаем параметры из текущего URL
+    const params = new URLSearchParams(window.location.search);
+    const userId = params.get("user_id");
+    const username = params.get("username");
+
+    // Добавляем параметры к ссылкам
+    if (userId && username) {
+      const links = document.querySelectorAll(".game-link");
+      links.forEach(link => {
+        const url = new URL(link.href, window.location.origin);
+        url.searchParams.set("user_id", userId);
+        url.searchParams.set("username", username);
+        link.href = url.href;
+      });
+    }
+
     document.addEventListener("touchmove", e => e.preventDefault(), { passive: false });
     document.addEventListener("selectstart", e => e.preventDefault());
   </script>

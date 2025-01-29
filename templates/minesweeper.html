@@ -369,6 +369,9 @@
     function endGame(win){
       isGameOver=true;
       clearInterval(timerInterval);
+      gameOverDiv.style.display = "block";
+      resultMsg.textContent = win ? "Победа! 🎉" : "Поражение! 💥";
+
       if(win){
         resultMsg.textContent=`Поздравляем, вы победили! Время: ${timeValue.textContent} сек.`;
         const time = parseInt(timeValue.textContent, 10);
@@ -376,7 +379,7 @@
         const userId = urlParams.get('user_id');
         const username = urlParams.get('username');
 
-        fetch('/api/record', {
+        fetch('https://telegram-minigames.vercel.app/api/record', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -386,7 +389,9 @@
             score: time
           })
           
-        });
+        }).then(response => response.json())
+          .then(data => console.log("Рекорд сохранён:", data))
+          .catch(error => console.error("Ошибка сохранения рекорда:", error));
       } else {
         resultMsg.textContent=`Мина! Вы проиграли. Время: ${timeValue.textContent} сек.`;
       }

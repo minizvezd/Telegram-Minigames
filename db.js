@@ -12,7 +12,7 @@ const Record = mongoose.model('Record', recordSchema);
 
 async function connectDB() {
     try {
-        await mongoose.connect('mongodb+srv://formersss123:WO18tYqcSD29Dzwb@cluster0.3etwv.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0');
+        await mongoose.connect('mongodb+srv://formersss123:WO18tYqcSD29Dzwb@cluster0.3etwv.mongodb.net/minigames?retryWrites=true&w=majority&appName=Cluster0');
         console.log("MongoDB connected")
     } catch(error) {
         console.error("Database connection error: ", error);

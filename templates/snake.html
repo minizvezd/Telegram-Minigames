@@ -219,7 +219,7 @@
   const username = new URLSearchParams(window.location.search).get("username") || "anon";
 
   // Отправляем данные на сервер
-  fetch("https://your-server-url/api/record", {
+  fetch("https://telegram-minigames.vercel.app/api/record", {
     method: "POST",
     headers: {
       "Content-Type": "application/json"

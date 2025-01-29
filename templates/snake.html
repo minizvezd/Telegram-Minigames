@@ -209,11 +209,32 @@
     }
 
     function gameOverFunc(){
-      isGameOver=true;
-      clearInterval(gameInterval);
-      finalMessage.textContent=`Игра окончена! Счёт: ${score}`;
-      gameOverDiv.style.display="block";
-    }
+  isGameOver = true;
+  clearInterval(gameInterval);
+  finalMessage.textContent = `Игра окончена! Счёт: ${score}`;
+  gameOverDiv.style.display = "block";
+
+  // Получаем данные о пользователе из URL
+  const userId = new URLSearchParams(window.location.search).get("user_id");
+  const username = new URLSearchParams(window.location.search).get("username") || "anon";
+
+  // Отправляем данные на сервер
+  fetch("https://your-server-url/api/record", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      user_id: userId,
+      username: username,
+      game_type: "snake",
+      score: score
+    })
+  })
+  .then(response => response.json())
+  .then(data => console.log("Рекорд сохранён:", data))
+  .catch(error => console.error("Ошибка сохранения рекорда:", error));
+}
     function updateScore(){
       scoreValue.textContent=score;
     }

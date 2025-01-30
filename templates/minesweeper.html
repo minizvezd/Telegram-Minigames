@@ -376,14 +376,14 @@
         resultMsg.textContent=`Поздравляем, вы победили! Время: ${timeValue.textContent} сек.`;
         const time = parseInt(timeValue.textContent, 10);
         const urlParams = new URLSearchParams(window.location.search);
-        const userId = urlParams.get('user_id');
-        const username = urlParams.get('username');
+        const user_id = initDataUnsafe.user.id;
+        const username = initDataUnsafe.user.username || "anon";
 
         fetch('https://telegram-minigames.vercel.app/api/record', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            user_id: userId,
+            user_id: user_id,
             username: username,
             game_type: 'minesweeper',
             score: time

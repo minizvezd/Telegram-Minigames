@@ -254,6 +254,9 @@ h1 {
       <span>Pac-Man</span>
     </div>
   </div>
-
+  <script>
+    document.addEventListener("touchmove", e => e.preventDefault(), { passive:false });
+    document.addEventListener("selectstart", e=> e.preventDefault());
+  </script>
 </body>
 </html>

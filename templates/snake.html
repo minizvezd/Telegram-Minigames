@@ -131,190 +131,139 @@
 
   <script>
 
-    // Добавьте этот код для получения данных пользователя
-    const initData = Telegram.WebApp.initData;
-    const initDataUnsafe = Telegram.WebApp.initDataUnsafe;
+    const canvas = document.getElementById("gameCanvas");
+const ctx = canvas.getContext("2d");
 
-    if (initDataUnsafe.user) {
-      const user_id = initDataUnsafe.user.id;
-      const username = initDataUnsafe.user.username || "anon";
+const gridSize = 20;
+let snake = [{ x: 10, y: 10 }];
+let vx = 1, vy = 0;
+let food = { x: 5, y: 5 };
+let score = 0;
+let interval = 200;
+let gameInterval = null;
+let isGameOver = false;
 
-      // Отправляем данные на сервер для авторизации
-      fetch("https://telegram-minigames.vercel.app/api/auth", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          user_id: user_id,
-          username: username
-        })
-      })
-      .then(response => response.json())
-      .then(data => console.log("Пользователь авторизован:", data))
-      .catch(error => console.error("Ошибка авторизации:", error));
-    }
+function startGame() {
+  snake = [{ x: 10, y: 10 }];
+  vx = 1; vy = 0;
+  score = 0;
+  interval = 200;
+  isGameOver = false;
 
-    document.addEventListener("touchmove", e => e.preventDefault(), { passive:false });
-    document.addEventListener("selectstart", e=> e.preventDefault());
+  randomFood();
+  updateScore();
+  gameOverDiv.style.display = "none";
 
-    const canvas=document.getElementById("gameCanvas");
-    const ctx=canvas.getContext("2d");
-
-    const scoreValue=document.getElementById("scoreValue");
-    const gameOverDiv=document.getElementById("gameOver");
-    const finalMessage=document.getElementById("finalMessage");
-
-    const gridSize=20;
-    let snake=[{x:10,y:10}];
-    let vx=1,vy=0;
-    let food={x:5,y:5};
-    let score=0;
-    let interval=200;
-    let gameInterval=null;
-    let isGameOver=false;
-
-    let touchStartX=0,touchStartY=0;
-    const SWIPE_THRESHOLD=30;
-
-    function startGame(){
-      snake=[{x:10,y:10}];
-      vx=1;vy=0;
-      score=0;
-      interval=200;
-      isGameOver=false;
-
-      randomFood();
-      updateScore();
-      gameOverDiv.style.display="none";
-
-      if(gameInterval)clearInterval(gameInterval);
-      gameInterval=setInterval(gameLoop,interval);
-    }
-
-    function gameLoop(){
-      let head={x:snake[0].x+vx, y:snake[0].y+vy};
-      if(head.x<0|| head.x>=canvas.width/gridSize||
-         head.y<0|| head.y>=canvas.height/gridSize){
-        return gameOverFunc();
-      }
-      for(let i=0;i<snake.length;i++){
-        if(snake[i].x===head.x && snake[i].y===head.y){
-          return gameOverFunc();
-        }
-      }
-      snake.unshift(head);
-
-      if(head.x===food.x && head.y===food.y){
-        score++;
-        updateScore();
-        interval=Math.max(50, interval-5);
-        clearInterval(gameInterval);
-        gameInterval=setInterval(gameLoop,interval);
-        randomFood();
-      } else {
-        snake.pop();
-      }
-      draw();
-    }
-
-    function draw(){
-      ctx.fillStyle="#111";
-      ctx.fillRect(0,0,canvas.width,canvas.height);
-
-      for(let i=0;i<snake.length;i++){
-        ctx.fillStyle=(i===0)?"#0f0":"#2f2";
-        ctx.fillRect(snake[i].x*gridSize, snake[i].y*gridSize,gridSize-1,gridSize-1);
-      }
-
-      ctx.fillStyle="red";
-      ctx.beginPath();
-      ctx.arc((food.x+0.5)*gridSize,(food.y+0.5)*gridSize,gridSize/2-2,0,Math.PI*2);
-      ctx.fill();
-    }
-
-    function gameOverFunc(){
-      isGameOver = true;
-      clearInterval(gameInterval);
-      finalMessage.textContent = `Игра окончена! Счёт: ${score}`;
-      gameOverDiv.style.display = "block";
-
-      // Получаем данные о пользователе из URL
-      const user_id = initDataUnsafe.user.id;
-      const username = initDataUnsafe.user.username || "anon";
-
-      // Отправляем данные на сервер
-      fetch("https://telegram-minigames.vercel.app/api/record", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          user_id: user_id,
-          username: username,
-          game_type: "snake",
-          score: score
-        })
-      })
-      .then(response => response.json())
-      .then(data => console.log("Рекорд сохранён:", data))
-      .catch(error => console.error("Ошибка сохранения рекорда:", error));
+  if (gameInterval) clearInterval(gameInterval);
+  gameInterval = setInterval(gameLoop, interval);
 }
-    function updateScore(){
-      scoreValue.textContent=score;
-    }
-    function restartGame(){
-      startGame();
-    }
-    function randomFood(){
-      food.x=Math.floor(Math.random()*(canvas.width/gridSize));
-      food.y=Math.floor(Math.random()*(canvas.height/gridSize));
-    }
 
-    document.addEventListener("keydown", e=>{
-      if(isGameOver)return;
-      switch(e.key){
-        case"ArrowLeft":case"a":case"A":
-          if(vx!==1){ vx=-1;vy=0;}
-          break;
-        case"ArrowRight":case"d":case"D":
-          if(vx!==-1){vx=1;vy=0;}
-          break;
-        case"ArrowUp":case"w":case"W":
-          if(vy!==1){ vy=-1;vx=0;}
-          break;
-        case"ArrowDown":case"s":case"S":
-          if(vy!==-1){vy=1;vx=0;}
-          break;
-      }
-    });
+function gameLoop() {
+  let head = { x: snake[0].x + vx, y: snake[0].y + vy };
+  if (head.x < 0 || head.x >= canvas.width / gridSize ||
+    head.y < 0 || head.y >= canvas.height / gridSize) {
+    return gameOverFunc();
+  }
+  for (let i = 0; i < snake.length; i++) {
+    if (snake[i].x === head.x && snake[i].y === head.y) {
+      return gameOverFunc();
+    }
+  }
+  snake.unshift(head);
 
-    canvas.addEventListener("touchstart", e=>{
-      let t=e.touches[0];
-      touchStartX=t.clientX;
-      touchStartY=t.clientY;
-    });
-    canvas.addEventListener("touchend", e=>{
-      if(isGameOver)return;
-      let t=e.changedTouches[0];
-      let dx=t.clientX - touchStartX;
-      let dy=t.clientY - touchStartY;
-      if(Math.abs(dx)>Math.abs(dy)){
-        if(dx>SWIPE_THRESHOLD){
-          if(vx!==-1){vx=1;vy=0;}
-        } else if(dx< -SWIPE_THRESHOLD){
-          if(vx!==1){vx=-1;vy=0;}
-        }
-      } else {
-        if(dy>SWIPE_THRESHOLD){
-          if(vy!==-1){vy=1;vx=0;}
-        } else if(dy< -SWIPE_THRESHOLD){
-          if(vy!==1){vy=-1;vx=0;}
-        }
-      }
-    });
+  if (head.x === food.x && head.y === food.y) {
+    score++;
+    updateScore();
+    interval = Math.max(50, interval - 5);
+    clearInterval(gameInterval);
+    gameInterval = setInterval(gameLoop, interval);
+    randomFood();
+  } else {
+    snake.pop();
+  }
+  draw();
+}
 
-    startGame();
+function draw() {
+  ctx.fillStyle = "#111";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  for (let i = 0; i < snake.length; i++) {
+    ctx.fillStyle = (i === 0) ? "#0f0" : "#2f2";
+    ctx.fillRect(snake[i].x * gridSize, snake[i].y * gridSize, gridSize - 1, gridSize - 1);
+  }
+
+  ctx.fillStyle = "red";
+  ctx.beginPath();
+  ctx.arc((food.x + 0.5) * gridSize, (food.y + 0.5) * gridSize, gridSize / 2 - 2, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function gameOverFunc() {
+  isGameOver = true;
+  clearInterval(gameInterval);
+  finalMessage.textContent = `Игра окончена! Счёт: ${score}`;
+  gameOverDiv.style.display = "block";
+}
+
+function updateScore() {
+  scoreValue.textContent = score;
+}
+
+function restartGame() {
+  startGame();
+}
+
+function randomFood() {
+  food.x = Math.floor(Math.random() * (canvas.width / gridSize));
+  food.y = Math.floor(Math.random() * (canvas.height / gridSize));
+}
+
+document.addEventListener("keydown", e => {
+  if (isGameOver) return;
+  switch (e.key) {
+    case "ArrowLeft": case "a": case "A":
+      if (vx !== 1) { vx = -1; vy = 0; }
+      break;
+    case "ArrowRight": case "d": case "D":
+      if (vx !== -1) { vx = 1; vy = 0; }
+      break;
+    case "ArrowUp": case "w": case "W":
+      if (vy !== 1) { vy = -1; vx = 0; }
+      break;
+    case "ArrowDown": case "s": case "S":
+      if (vy !== -1) { vy = 1; vx = 0; }
+      break;
+  }
+});
+
+canvas.addEventListener("touchstart", e => {
+  let t = e.touches[0];
+  touchStartX = t.clientX;
+  touchStartY = t.clientY;
+});
+
+canvas.addEventListener("touchend", e => {
+  if (isGameOver) return;
+  let t = e.changedTouches[0];
+  let dx = t.clientX - touchStartX;
+  let dy = t.clientY - touchStartY;
+  if (Math.abs(dx) > Math.abs(dy)) {
+    if (dx > SWIPE_THRESHOLD) {
+      if (vx !== -1) { vx = 1; vy = 0; }
+    } else if (dx < -SWIPE_THRESHOLD) {
+      if (vx !== 1) { vx = -1; vy = 0; }
+    }
+  } else {
+    if (dy > SWIPE_THRESHOLD) {
+      if (vy !== -1) { vy = 1; vx = 0; }
+    } else if (dy < -SWIPE_THRESHOLD) {
+      if (vy !== 1) { vy = -1; vx = 0; }
+    }
+  }
+});
+
+startGame();
   </script>
 </body>
 </html>

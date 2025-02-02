@@ -2,11 +2,10 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <title>Сапёр (с защитой первого клика)</title>
+  <title>Сапёр</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 
   <style>
-    /* Отключаем прокрутку, выделение и т.д. */
     html, body {
       margin:0; 
       padding:0;
@@ -67,11 +66,10 @@
       margin:10px;
       font-size:16px;
     }
-    /* Центрируем поле */
     #mineContainer {
       position:relative;
       display:flex;
-      justify-content:center;
+      justify-content:center; 
       margin-bottom:20px;
     }
     #board {
@@ -130,7 +128,6 @@
     #gameOver button:hover {
       background:#d55;
     }
-
     @media(max-width:600px){
       #board {
         grid-template-columns:repeat(8,35px);
@@ -145,15 +142,12 @@
 </head>
 <body>
   <header>
-    <!-- Кнопка «Назад», ведущая на / -->
     <a class="back-button" href="/">Назад</a>
     <h1>Сапёр 8×8</h1>
   </header>
 
   <div class="instructions">
-    Первая открытая ячейка не может быть миной.<br>
-    ПК: ЛКМ — открыть, ПКМ — флажок.<br>
-    Телефон: короткий тап — открыть, долгий тап (~0.4c) — флажок.
+    ПК: ЛКМ открыть, ПКМ флаг. Телефон: короткий тап — открыть, долгий — флаг.
   </div>
 
   <div id="info">
@@ -172,74 +166,90 @@
   </div>
 
   <script>
-    /* Отключаем pull-to-refresh / выделение */
     document.addEventListener("touchmove", e=> e.preventDefault(), {passive:false});
     document.addEventListener("selectstart", e=> e.preventDefault());
 
-    const boardElem = document.getElementById("board");
-    const minesCountElem = document.getElementById("minesCount");
-    const timeValue = document.getElementById("timeValue");
-    const gameOverDiv = document.getElementById("gameOver");
-    const resultMsg = document.getElementById("resultMsg");
 
-    const size = 8;
-    const mineTotal = 10;
-    let board = [];
-    let cellsLeft = size * size;
-    let flagsUsed = 0;
-    let startTime = 0;
-    let timerInterval = null;
-    let isGameOver = false;
+   const boardElem=document.getElementById("board");
+    const minesCountElem=document.getElementById("minesCount");
+    const timeValue=document.getElementById("timeValue");
+    const gameOverDiv=document.getElementById("gameOver");
+    const resultMsg=document.getElementById("resultMsg");
 
-    // Флаг "первый клик"
-    let isFirstClick = true;
+    const size=8;
+    const mineTotal=10;
+    let board=[];
+    let cellsLeft=size*size;
+    let flagsUsed=0;
+    let startTime=0;
+    let timerInterval=null;
+    let isGameOver=false;
 
-    // Долгий тап (для флага)
-    let touchTimeout = null;
-    let touchedCell = null;
+    let touchTimeout=null;
+    let touchedCell=null;
 
     function initBoard(){
-      board = [];
-      for(let r=0; r<size; r++){
-        let row = [];
-        for(let c=0; c<size; c++){
-          row.push({
-            mine: false,
-            open: false,
-            flag: false,
-            adjacent: 0
-          });
+      board=[];
+      for(let r=0;r<size;r++){
+        let row=[];
+        for(let c=0;c<size;c++){
+          row.push({mine:false,open:false,flag:false,adjacent:0});
         }
         board.push(row);
       }
-
-      // В этот раз мы НЕ расставляем мины сразу, а ждём первого клика.
-      // cellsLeft = size*size; (ниже)
-      // flagsUsed = 0; (ниже)
-      cellsLeft = size * size;
-      flagsUsed = 0;
-      isGameOver = false;
-      isFirstClick = true; // При рестарте снова "первая клик"
+      let placed=0;
+      while(placed<mineTotal){
+        let rr=Math.floor(Math.random()*size);
+        let cc=Math.floor(Math.random()*size);
+        if(!board[rr][cc].mine){
+          board[rr][cc].mine=true;
+          placed++;
+        }
+      }
+      for(let r=0;r<size;r++){
+        for(let c=0;c<size;c++){
+          if(!board[r][c].mine){
+            board[r][c].adjacent=countMines(r,c);
+          }
+        }
+      }
+      cellsLeft=size*size;
+      flagsUsed=0;
+      isGameOver=false;
       updateMinesCount();
     }
 
-    function drawBoard(){
-      boardElem.innerHTML = "";
-      for(let r=0; r<size; r++){
-        for(let c=0; c<size; c++){
-          const cellDiv = document.createElement("div");
-          cellDiv.classList.add("cell");
-          cellDiv.dataset.r = r;
-          cellDiv.dataset.c = c;
+    function countMines(r,c){
+      let count=0;
+      for(let rr=-1;rr<=1;rr++){
+        for(let cc=-1;cc<=1;cc++){
+          let nr=r+rr;
+          let nc=c+cc;
+          if(nr>=0&&nr<size&&nc>=0&&nc<size&& board[nr][nc].mine){
+            count++;
+          }
+        }
+      }
+      return count;
+    }
 
-          let data = board[r][c];
+    function drawBoard(){
+      boardElem.innerHTML="";
+      for(let r=0;r<size;r++){
+        for(let c=0;c<size;c++){
+          const cellDiv=document.createElement("div");
+          cellDiv.classList.add("cell");
+          cellDiv.dataset.r=r;
+          cellDiv.dataset.c=c;
+
+          let data=board[r][c];
           if(data.open){
             cellDiv.classList.add("open");
             if(data.mine){
               cellDiv.classList.add("mine");
-              cellDiv.textContent = "X";
-            } else if(data.adjacent > 0){
-              cellDiv.textContent = data.adjacent;
+              cellDiv.textContent="X";
+            } else if(data.adjacent>0){
+              cellDiv.textContent=data.adjacent;
             }
           } else if(data.flag){
             cellDiv.classList.add("flag");
@@ -247,112 +257,100 @@
 
           boardElem.appendChild(cellDiv);
 
-          // События для мобильных
-          cellDiv.addEventListener("touchstart", e => onTouchStart(e, cellDiv));
-          cellDiv.addEventListener("touchend", e => onTouchEnd(e, cellDiv));
-          // Событие ПК: клик ЛКМ => открыть
+          cellDiv.addEventListener("touchstart", e=> onTouchStart(e,cellDiv));
+          cellDiv.addEventListener("touchend", e=> onTouchEnd(e,cellDiv));
           cellDiv.addEventListener("click", onCellClick);
         }
       }
     }
 
-    boardElem.addEventListener("contextmenu", e=>{
-      e.preventDefault();
-      if(isGameOver) return;
-      const target = e.target;
-      if(!target.classList.contains("cell")) return;
-      let r = +target.dataset.r;
-      let c = +target.dataset.c;
-      toggleFlag(r,c);
-      drawBoard();
-    });
-
     function onCellClick(e){
-      if(isGameOver) return;
-      let r = +e.target.dataset.r;
-      let c = +e.target.dataset.c;
+      if(isGameOver)return;
+      let r= +e.target.dataset.r;
+      let c= +e.target.dataset.c;
       openCell(r,c);
       drawBoard();
     }
 
-    // Обработка мобильных «долгих тапов»
+    boardElem.addEventListener("contextmenu", e=>{
+      e.preventDefault();
+      if(isGameOver)return;
+      let target=e.target;
+      if(!target.classList.contains("cell"))return;
+      let r= +target.dataset.r;
+      let c= +target.dataset.c;
+      toggleFlag(r,c);
+      drawBoard();
+    });
+
     function onTouchStart(e, cellDiv){
-      if(isGameOver) return;
-      touchedCell = cellDiv;
-      touchTimeout = setTimeout(()=>{
-        // долгий тап => флажок
+      if(isGameOver)return;
+      touchedCell=cellDiv;
+      touchTimeout=setTimeout(()=>{
+        // Долгий тап => флажок
         if(touchedCell){
-          let rr = +touchedCell.dataset.r;
-          let cc = +touchedCell.dataset.c;
-          toggleFlag(rr, cc);
+          let rr= +touchedCell.dataset.r;
+          let cc= +touchedCell.dataset.c;
+          toggleFlag(rr,cc);
           drawBoard();
-          touchedCell = null;
+          touchedCell=null;
         }
       },400);
     }
     function onTouchEnd(e, cellDiv){
-      if(isGameOver) return;
+      if(isGameOver)return;
       if(touchTimeout) clearTimeout(touchTimeout);
       if(touchedCell){
         // короткий тап => открыть
-        let rr = +cellDiv.dataset.r;
-        let cc = +cellDiv.dataset.c;
+        let rr= +cellDiv.dataset.r;
+        let cc= +cellDiv.dataset.c;
         openCell(rr,cc);
         drawBoard();
       }
-      touchedCell = null;
+      touchedCell=null;
     }
 
     function openCell(r,c){
-      let cell = board[r][c];
-      if(cell.open || cell.flag) return;
-
-      // Если это первый клик, расставляем мины, исключая (r,c).
-      if(isFirstClick){
-        placeMinesExcept(r,c);
-        computeAdjacents(); // считаем соседей
-        isFirstClick = false;
-      }
-
-      cell.open = true;
+      let cell=board[r][c];
+      if(cell.open||cell.flag)return;
+      cell.open=true;
       cellsLeft--;
 
+
       if(cell.mine){
-        // Проигрыш
         showAllMines();
         endGame(false);
         return;
       }
-      if(cell.adjacent === 0){
+      if(cell.adjacent===0){
         floodOpen(r,c);
       }
-      if(cellsLeft === mineTotal){
-        // Выигрыш
+      if(cellsLeft===mineTotal){
         endGame(true);
       }
     }
 
     function toggleFlag(r,c){
-      let cell = board[r][c];
-      if(cell.open) return;
-      cell.flag = !cell.flag;
-      flagsUsed += (cell.flag ? 1 : -1);
+      let cell=board[r][c];
+      if(cell.open)return;
+      cell.flag=!cell.flag;
+      flagsUsed += cell.flag ? 1 : -1;
       updateMinesCount();
     }
 
     function updateMinesCount(){
-      let minesLeft = mineTotal - flagsUsed;
-      minesCountElem.textContent = (minesLeft >= 0) ? minesLeft : 0;
+      let minesLeft= mineTotal- flagsUsed;
+      minesCountElem.textContent=(minesLeft>=0)? minesLeft: 0;
     }
 
     function floodOpen(r,c){
-      for(let rr=-1; rr<=1; rr++){
-        for(let cc=-1; cc<=1; cc++){
-          let nr = r+rr;
-          let nc = c+cc;
+      for(let rr=-1;rr<=1;rr++){
+        for(let cc=-1;cc<=1;cc++){
+          let nr=r+rr; 
+          let nc=c+cc;
           if(nr>=0 && nr<size && nc>=0 && nc<size){
-            let neighbor = board[nr][nc];
-            if(!neighbor.open && !neighbor.mine){
+            let neigh=board[nr][nc];
+            if(!neigh.open && !neigh.mine){
               openCell(nr,nc);
             }
           }
@@ -361,61 +359,55 @@
     }
 
     function showAllMines(){
-      for(let r=0; r<size; r++){
-        for(let c=0; c<size; c++){
+      for(let r=0;r<size;r++){
+        for(let c=0;c<size;c++){
           if(board[r][c].mine){
-            board[r][c].open = true;
+            board[r][c].open=true;
           }
         }
       }
     }
 
     function endGame(win){
-      isGameOver = true;
+      isGameOver=true;
       clearInterval(timerInterval);
-      if(win){
-        resultMsg.textContent = `Поздравляем, вы победили! Время: ${timeValue.textContent} сек.`;
-      } else {
-        resultMsg.textContent = `Мина! Вы проиграли. Время: ${timeValue.textContent} сек.`;
-      }
       gameOverDiv.style.display = "block";
-    }
+      resultMsg.textContent = win ? "Победа! 🎉" : "Поражение! 💥";
 
-    // ======= Логика расстановки мин с учётом "первого клика" =======
-    function placeMinesExcept(exceptR, exceptC){
-      // Расставляем mineTotal мин, но НЕ в ячейке (exceptR,exceptC).
-      let placed = 0;
-      while(placed < mineTotal){
-        let rr = Math.floor(Math.random()*size);
-        let cc = Math.floor(Math.random()*size);
-        if((rr===exceptR && cc===exceptC) || board[rr][cc].mine){
-          continue; // пропускаем
-        }
-        board[rr][cc].mine = true;
-        placed++;
-      }
-    }
+      if(win){
+        resultMsg.textContent=`Поздравляем, вы победили! Время: ${timeValue.textContent} сек.`;
+        const time = parseInt(timeValue.textContent, 10);
+        const urlParams = new URLSearchParams(window.location.search);
+        const user_id = initDataUnsafe.user.id;
+        const username = initDataUnsafe.user.username || "anon";
 
-    // Подсчёт соседей (adjacent) после расстановки мин
-    function computeAdjacents(){
-      for(let r=0; r<size; r++){
-        for(let c=0; c<size; c++){
-          if(!board[r][c].mine){
-            board[r][c].adjacent = countMines(r,c);
-          }
-        }
+        fetch('https://telegram-minigames.vercel.app/api/record', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: user_id,
+            username: username,
+            game_type: 'minesweeper',
+            score: time
+          })
+          
+        }).then(response => response.json())
+          .then(data => console.log("Рекорд сохранён:", data))
+          .catch(error => console.error("Ошибка сохранения рекорда:", error));
+      } else {
+        resultMsg.textContent=`Мина! Вы проиграли. Время: ${timeValue.textContent} сек.`;
       }
+      gameOverDiv.style.display="block";
     }
-    // ========================
 
     function restartGame(){
-      gameOverDiv.style.display = "none";
+      gameOverDiv.style.display="none";
       initBoard();
       drawBoard();
-      startTime = Date.now();
+      startTime=Date.now();
       clearInterval(timerInterval);
-      timerInterval = setInterval(()=>{
-        timeValue.textContent = Math.floor((Date.now() - startTime)/1000);
+      timerInterval=setInterval(()=>{
+        timeValue.textContent=Math.floor((Date.now()-startTime)/1000);
       },1000);
     }
 
@@ -423,7 +415,6 @@
       restartGame();
     }
     start();
-
   </script>
 </body>
 </html>

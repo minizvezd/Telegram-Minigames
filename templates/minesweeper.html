@@ -185,6 +185,9 @@
     let timerInterval=null;
     let isGameOver=false;
 
+    // Флаг "первый клик"
+    let isFirstClick = true;
+
     let touchTimeout=null;
     let touchedCell=null;
 
@@ -286,6 +289,11 @@
     function onTouchStart(e, cellDiv){
       if(isGameOver)return;
       touchedCell=cellDiv;
+      if(isFirstClick){
+        placeMinesExcept(r,c);
+        computeAdjacents(); // считаем соседей
+        isFirstClick = false;
+      }
       touchTimeout=setTimeout(()=>{
         // Долгий тап => флажок
         if(touchedCell){

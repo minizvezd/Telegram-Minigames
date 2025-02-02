@@ -8,7 +8,11 @@
     {
       "src": "templates/**/*.html",
       "use": "@vercel/static"
-    }
+    },
+	{
+		"src": "templates/images/**/*.jpg",
+      "use": "@vercel/static"
+	}
   ],
   "routes": [
     {

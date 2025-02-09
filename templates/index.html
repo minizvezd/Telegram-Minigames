@@ -4,11 +4,11 @@
   <meta charset="UTF-8" />
   <title>Minigames</title>
 
-  <!-- ВАЖНО для iOS: чуть увеличим initial-scale -->
+  <!-- ВАЖНО: для iOS можем слегка увеличить initial-scale -->
   <meta name="viewport" content="width=device-width, initial-scale=1.1, user-scalable=no">
 
+  <!-- Подключаем внешний файл стилей -->
   <link rel="stylesheet" href="style.css" />
-
 </head>
 <body>
   <!-- Анимационный фон с кружками -->
@@ -25,38 +25,32 @@
 
   <!-- Список мини-игр -->
   <div class="game-list">
-    <!-- Пример: меняем div.game-item + внутр. <a> => 
-         ВСЯ область становится ссылкой -->
+    <!-- 
+      Делаем каждый .game-item сразу <a>, 
+      чтобы весь овал был кликабельным. 
+    -->
     <a class="game-item snake" href="/snake.html">
-      <span class="game-text">Змейка</span>
+      <span>Змейка</span>
     </a>
-
     <a class="game-item tetris" href="/tetris.html">
-      <span class="game-text">Тетрис</span>
+      <span>Тетрис</span>
     </a>
-
     <a class="game-item pong" href="/pong.html">
-      <span class="game-text">Пинг понг</span>
+      <span>Пинг понг</span>
     </a>
-
     <a class="game-item game2048" href="/2048.html">
-      <span class="game-text">2048</span>
+      <span>2048</span>
     </a>
-
     <a class="game-item minesweeper" href="/minesweeper.html">
-      <span class="game-text">Сапёр</span>
+      <span>Сапёр</span>
     </a>
-
-    <!-- Если эти две игры ещё не готовы, можно оставить их как span
-         или временно без ссылок -->
     <a class="game-item flappy" href="#">
-      <span class="game-text">Flappy Bird</span>
+      <span>Flappy Bird</span>
     </a>
     <a class="game-item pacman" href="#">
-      <span class="game-text">Pac-Man</span>
+      <span>Pac-Man</span>
     </a>
-
   </div>
-
+  
 </body>
 </html>

@@ -7,14 +7,14 @@
 }
 
 body {
-  background: #0b0e33; /* Тёмно-синий фон */
+  background: #0b0e33; 
   color: #fff;
   min-height: 100vh;
   position: relative;
   overflow-x: hidden;
 }
 
-/* Заголовок по центру */
+/* Заголовок */
 h1 {
   text-align: center;
   margin-top: 40px;
@@ -79,10 +79,10 @@ h1 {
   justify-content: center;
 }
 
-/* Оформление “овальных” кнопок */
+/* Овальные ссылки */
 .game-item {
   position: relative;
-  display: flex;           /* flex, чтобы центрировать */
+  display: flex;
   align-items: center;
   justify-content: center;
 
@@ -100,21 +100,22 @@ h1 {
   text-align: center;
 
   color: #fff;
-  text-decoration: none; /* для ссылки */
-  
-  /* Анимация при наведении */
+  text-decoration: none; /* вся ссылка без подчёркивания */
+
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
 .game-item::before {
   content: "";
   position: absolute;
-  top: 0; left: 0; 
+  top: 0; left: 0;
   width: 100%; height: 100%;
   z-index: -1;
+
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
+
   filter: blur(4px) brightness(0.4);
   transition: filter 0.3s ease;
 }
@@ -126,27 +127,27 @@ h1 {
   filter: blur(2px) brightness(0.6);
 }
 
-/* Подключаем фоновые картинки (комментируйте, если их нет) */
+/* Фоновые картинки (из папки images/) */
 .snake::before {
-  background-image: url("images/snake.jpg");
+  background-image: url("./images/snake.jpg");
 }
 .tetris::before {
-  background-image: url("images/tetris.jpg");
+  background-image: url("./images/tetris.jpg");
 }
 .pong::before {
-  background-image: url("images/pong.jpg");
+  background-image: url("./images/pong.jpg");
 }
 .game2048::before {
-  background-image: url("images/2048.jpg");
+  background-image: url("./images/2048.jpg");
 }
 .minesweeper::before {
-  background-image: url("images/minesweeper.jpg");
+  background-image: url("./images/minesweeper.jpg");
 }
 .flappy::before {
-  background-image: url("images/flappy.jpg");
+  background-image: url("./images/flappy.jpg");
 }
 .pacman::before {
-  background-image: url("images/pacman.jpg");
+  background-image: url("./images/pacman.jpg");
 }
 
 /* Адаптация под планшеты */

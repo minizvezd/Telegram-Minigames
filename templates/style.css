@@ -6,15 +6,20 @@
   font-family: sans-serif;
 }
 
+.game-link {
+    text-decoration: none;
+	color: #fff;
+}
+
 body {
-  background: #0b0e33; 
+  background: #0b0e33; /* Тёмно-синий фон */
   color: #fff;
   min-height: 100vh;
   position: relative;
   overflow-x: hidden;
 }
 
-/* Заголовок */
+/* Заголовок по центру */
 h1 {
   text-align: center;
   margin-top: 40px;
@@ -22,7 +27,7 @@ h1 {
   letter-spacing: 2px;
 }
 
-/* Анимационный фон */
+/* Блок для анимационного фона */
 .animation-background {
   position: fixed;
   top: 0;
@@ -30,42 +35,64 @@ h1 {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  z-index: -1;
+  z-index: -1; /* чтобы фон был позади основного контента */
 }
+
+/* Кружки для анимации */
 .circle {
   position: absolute;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.08);
   animation: float 20s linear infinite;
 }
+
+/* Псевдослучайные размеры и расположение кружков */
 .circle:nth-child(1) {
-  width: 150px; height: 150px;
-  top: 10%; left: 15%;
+  width: 150px;
+  height: 150px;
+  top: 10%;
+  left: 15%;
 }
 .circle:nth-child(2) {
-  width: 100px; height: 100px;
-  top: 50%; left: 30%;
+  width: 100px;
+  height: 100px;
+  top: 50%;
+  left: 30%;
   animation-duration: 25s;
 }
 .circle:nth-child(3) {
-  width: 200px; height: 200px;
-  top: 20%; left: 70%;
+  width: 200px;
+  height: 200px;
+  top: 20%;
+  left: 70%;
   animation-duration: 30s;
 }
 .circle:nth-child(4) {
-  width: 120px; height: 120px;
-  top: 70%; left: 80%;
+  width: 120px;
+  height: 120px;
+  top: 70%;
+  left: 80%;
   animation-duration: 18s;
 }
 .circle:nth-child(5) {
-  width: 80px; height: 80px;
-  top: 80%; left: 25%;
+  width: 80px;
+  height: 80px;
+  top: 80%;
+  left: 25%;
   animation-duration: 22s;
 }
+
+/* Анимация кружков */
 @keyframes float {
-  0%   { transform: translateY(0)   translateX(0); }
-  50%  { transform: translateY(-50px) translateX(20px); }
-  100% { transform: translateY(0)   translateX(0); }
+  0% {
+    transform: translateY(0) translateX(0);
+  }
+  50% {
+    transform: translateY(-50px) translateX(20px);
+  }
+  100% {
+    transform: translateY(0) translateX(0);
+  }
 }
 
 /* Контейнер для списка игр */
@@ -79,13 +106,9 @@ h1 {
   justify-content: center;
 }
 
-/* Овальные ссылки */
+/* Оформление овалов с мини-играми */
 .game-item {
   position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
   width: 100%;
   max-width: 600px;
   min-height: 100px;
@@ -93,87 +116,68 @@ h1 {
   overflow: hidden;
   cursor: pointer;
 
+  display: flex;
+  align-items: center;
+  justify-content: center;
   text-transform: uppercase;
   font-size: 1.5rem;
   font-weight: bold;
   letter-spacing: 1px;
   text-align: center;
 
-  color: #fff;
-  text-decoration: none; /* вся ссылка без подчёркивания */
-
+  /* Плавная анимация при наведении */
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
+/*
+  Псевдоэлемент для затемнённой и (при желании) слегка размытой картинки.
+  Можно регулировать blur(...) и brightness(...).
+*/
 .game-item::before {
   content: "";
   position: absolute;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
+  top: 0; 
+  left: 0; 
+  width: 100%; 
+  height: 100%;
   z-index: -1;
-
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
-
+  /* Затемнённая + немного размытия */
   filter: blur(4px) brightness(0.4);
   transition: filter 0.3s ease;
 }
+
+/* Ховер-эффект: немного “осветляем”, уменьшаем blur */
 .game-item:hover {
   transform: scale(1.05);
-  box-shadow: 0 0 15px rgba(255,255,255,0.3);
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
 }
 .game-item:hover::before {
   filter: blur(2px) brightness(0.6);
 }
 
-/* Фоновые картинки (из папки images/) */
+/* Подключаем фоновые изображения для каждой конкретной игры */
 .snake::before {
-  background-image: url("./images/snake.jpg");
+  background-image: url("images/snake.jpg");
 }
 .tetris::before {
-  background-image: url("./images/tetris.jpg");
+  background-image: url("images/tetris.jpg");
 }
 .pong::before {
-  background-image: url("./images/pong.jpg");
+  background-image: url("images/pong.jpg");
 }
 .game2048::before {
-  background-image: url("./images/2048.jpg");
+  background-image: url("images/2048.jpg");
 }
 .minesweeper::before {
-  background-image: url("./images/minesweeper.jpg");
+  background-image: url("images/minesweeper.jpg");
 }
 .flappy::before {
-  background-image: url("./images/flappy.jpg");
+  background-image: url("images/flappy.jpg");
 }
 .pacman::before {
-  background-image: url("./images/pacman.jpg");
+  background-image: url("images/pacman.jpg");
 }
 
-/* Адаптация под планшеты */
-@media screen and (max-width: 768px) {
-  h1 {
-    margin-top: 20px;
-    font-size: 2.2rem;
-  }
-  .game-list {
-    gap: 16px;
-  }
-  .game-item {
-    min-height: 80px;
-    font-size: 1.2rem;
-    border-radius: 30px;
-  }
-}
-
-/* Адаптация под телефоны */
-@media screen and (max-width: 480px) {
-  h1 {
-    font-size: 1.8rem;
-  }
-  .game-item {
-    min-height: 70px;
-    font-size: 1rem;
-    border-radius: 25px;
-  }
-}

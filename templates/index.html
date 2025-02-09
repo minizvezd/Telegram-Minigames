@@ -4,11 +4,11 @@
   <meta charset="UTF-8" />
   <title>Minigames</title>
 
-  <!-- ВАЖНО: для iOS можем слегка увеличить initial-scale -->
+  <!-- Чтобы на iOS было немного крупнее: -->
   <meta name="viewport" content="width=device-width, initial-scale=1.1, user-scalable=no">
 
   <!-- Подключаем внешний файл стилей -->
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <!-- Анимационный фон с кружками -->
@@ -25,10 +25,7 @@
 
   <!-- Список мини-игр -->
   <div class="game-list">
-    <!-- 
-      Делаем каждый .game-item сразу <a>, 
-      чтобы весь овал был кликабельным. 
-    -->
+    <!-- КАЖДАЯ .game-item - это <a>, чтобы весь овал был кликабельным -->
     <a class="game-item snake" href="/snake.html">
       <span>Змейка</span>
     </a>
@@ -51,6 +48,5 @@
       <span>Pac-Man</span>
     </a>
   </div>
-  
 </body>
 </html>

@@ -3,219 +3,255 @@
 <head>
   <meta charset="UTF-8" />
   <title>Minigames</title>
-  <style> 
+  <!-- Скрипт для определения iOS-устройства и добавления класса "ios" -->
+  <script>
+    if (/iP(ad|hone|od)/.test(navigator.userAgent)) {
+      document.documentElement.classList.add('ios');
+    }
+  </script>
+  <style>
     /* Сброс и базовые стили */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: sans-serif;
-}
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: sans-serif;
+    }
 
-.game-link {
-    text-decoration: none;
-	color: #fff;
-}
+    .game-link {
+      text-decoration: none;
+      color: #fff;
+    }
+    
+    /* Делаем ссылку блочным элементом, чтобы весь элемент был кликабельным */
+    .game-item .game-link {
+      display: block;
+      width: 100%;
+      height: 100%;
+      -webkit-tap-highlight-color: transparent; /* Для устранения мерцания при нажатии в iOS */
+    }
 
-body {
-  background: #0b0e33; /* Тёмно-синий фон */
-  color: #fff;
-  min-height: 100vh;
-  position: relative;
-  overflow-x: hidden;
-}
+    body {
+      background: #0b0e33; /* Тёмно-синий фон */
+      color: #fff;
+      min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
+    }
 
-/* Заголовок по центру */
-h1 {
-  text-align: center;
-  margin-top: 40px;
-  font-size: 3rem;
-  letter-spacing: 2px;
-}
+    /* Заголовок по центру */
+    h1 {
+      text-align: center;
+      margin-top: 40px;
+      font-size: 3rem;
+      letter-spacing: 2px;
+    }
 
-/* Блок для анимационного фона */
-.animation-background {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  z-index: -1; /* чтобы фон был позади основного контента */
-}
+    /* Блок для анимационного фона */
+    .animation-background {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      z-index: -1; /* фон позади основного контента */
+    }
 
-/* Кружки для анимации */
-.circle {
-  position: absolute;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.08);
-  animation: float 20s linear infinite;
-}
+    /* Кружки для анимации */
+    .circle {
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.08);
+      animation: float 20s linear infinite;
+    }
+    .circle:nth-child(1) {
+      width: 150px;
+      height: 150px;
+      top: 10%;
+      left: 15%;
+    }
+    .circle:nth-child(2) {
+      width: 100px;
+      height: 100px;
+      top: 50%;
+      left: 30%;
+      animation-duration: 25s;
+    }
+    .circle:nth-child(3) {
+      width: 200px;
+      height: 200px;
+      top: 20%;
+      left: 70%;
+      animation-duration: 30s;
+    }
+    .circle:nth-child(4) {
+      width: 120px;
+      height: 120px;
+      top: 70%;
+      left: 80%;
+      animation-duration: 18s;
+    }
+    .circle:nth-child(5) {
+      width: 80px;
+      height: 80px;
+      top: 80%;
+      left: 25%;
+      animation-duration: 22s;
+    }
 
-/* Псевдослучайные размеры и расположение кружков */
-.circle:nth-child(1) {
-  width: 150px;
-  height: 150px;
-  top: 10%;
-  left: 15%;
-}
-.circle:nth-child(2) {
-  width: 100px;
-  height: 100px;
-  top: 50%;
-  left: 30%;
-  animation-duration: 25s;
-}
-.circle:nth-child(3) {
-  width: 200px;
-  height: 200px;
-  top: 20%;
-  left: 70%;
-  animation-duration: 30s;
-}
-.circle:nth-child(4) {
-  width: 120px;
-  height: 120px;
-  top: 70%;
-  left: 80%;
-  animation-duration: 18s;
-}
-.circle:nth-child(5) {
-  width: 80px;
-  height: 80px;
-  top: 80%;
-  left: 25%;
-  animation-duration: 22s;
-}
+    /* Анимация кружков */
+    @keyframes float {
+      0% {
+        transform: translateY(0) translateX(0);
+      }
+      50% {
+        transform: translateY(-50px) translateX(20px);
+      }
+      100% {
+        transform: translateY(0) translateX(0);
+      }
+    }
 
-/* Анимация кружков */
-@keyframes float {
-  0% {
-    transform: translateY(0) translateX(0);
-  }
-  50% {
-    transform: translateY(-50px) translateX(20px);
-  }
-  100% {
-    transform: translateY(0) translateX(0);
-  }
-}
+    /* Контейнер для списка игр */
+    .game-list {
+      margin: 40px auto;
+      width: 90%;
+      max-width: 1200px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: center;
+    }
 
-/* Контейнер для списка игр */
-.game-list {
-  margin: 40px auto;
-  width: 90%;
-  max-width: 1200px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 20px;
-  justify-content: center;
-}
+    /* Оформление кнопок (овалов) с мини-играми */
+    .game-item {
+      position: relative;
+      width: 100%;
+      max-width: 600px;
+      min-height: 100px;
+      border-radius: 50px;
+      overflow: hidden;
+      cursor: pointer;
 
-/* Оформление овалов с мини-играми */
-.game-item {
-  position: relative;
-  width: 100%;
-  max-width: 600px;
-  min-height: 100px;
-  border-radius: 50px;
-  overflow: hidden;
-  cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-transform: uppercase;
+      font-size: 1.5rem;
+      font-weight: bold;
+      letter-spacing: 1px;
+      text-align: center;
 
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-transform: uppercase;
-  font-size: 1.5rem;
-  font-weight: bold;
-  letter-spacing: 1px;
-  text-align: center;
+      /* Плавная анимация при наведении */
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
 
-  /* Плавная анимация при наведении */
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
+    /* Псевдоэлемент для фона игры (затемнение + размытие) */
+    .game-item::before {
+      content: "";
+      position: absolute;
+      top: 0; 
+      left: 0; 
+      width: 100%; 
+      height: 100%;
+      z-index: -1;
+      background-position: center;
+      background-repeat: no-repeat;
+      background-size: cover;
+      filter: blur(4px) brightness(0.4);
+      transition: filter 0.3s ease;
+    }
 
-/*
-  Псевдоэлемент для затемнённой и (при желании) слегка размытой картинки.
-  Можно регулировать blur(...) и brightness(...).
-*/
-.game-item::before {
-  content: "";
-  position: absolute;
-  top: 0; 
-  left: 0; 
-  width: 100%; 
-  height: 100%;
-  z-index: -1;
-  background-position: center;
-  background-repeat: no-repeat;
-  background-size: cover;
-  /* Затемнённая + немного размытия */
-  filter: blur(4px) brightness(0.4);
-  transition: filter 0.3s ease;
-}
+    /* Ховер-эффект */
+    .game-item:hover {
+      transform: scale(1.05);
+      box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+    }
+    .game-item:hover::before {
+      filter: blur(2px) brightness(0.6);
+    }
 
-/* Ховер-эффект: немного “осветляем”, уменьшаем blur */
-.game-item:hover {
-  transform: scale(1.05);
-  box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
-}
-.game-item:hover::before {
-  filter: blur(2px) brightness(0.6);
-}
+    /* Фоновые изображения для каждой игры */
+    .snake::before {
+      background-image: url("images/snake.jpg");
+    }
+    .tetris::before {
+      background-image: url("images/tetris.jpg");
+    }
+    .pong::before {
+      background-image: url("images/pong.jpg");
+    }
+    .game2048::before {
+      background-image: url("images/2048.jpg");
+    }
+    .minesweeper::before {
+      background-image: url("images/minesweeper.jpg");
+    }
+    .flappy::before {
+      background-image: url("images/flappy.jpg");
+    }
+    .pacman::before {
+      background-image: url("images/pacman.jpg");
+    }
 
-/* Подключаем фоновые изображения для каждой конкретной игры */
-.snake::before {
-  background-image: url("images/snake.jpg");
-}
-.tetris::before {
-  background-image: url("images/tetris.jpg");
-}
-.pong::before {
-  background-image: url("images/pong.jpg");
-}
-.game2048::before {
-  background-image: url("images/2048.jpg");
-}
-.minesweeper::before {
-  background-image: url("images/minesweeper.jpg");
-}
-.flappy::before {
-  background-image: url("images/flappy.jpg");
-}
-.pacman::before {
-  background-image: url("images/pacman.jpg");
-}
-@media screen and (max-width: 768px) {
-  h1 {
-    margin-top: 20px;
-    font-size: 2.2rem;
-  }
+    /* Стандартные адаптивные стили для мобильных устройств */
+    @media screen and (max-width: 768px) {
+      h1 {
+        margin-top: 20px;
+        font-size: 2.2rem;
+      }
+      .game-list {
+        gap: 16px;
+      }
+      .game-item {
+        min-height: 80px;
+        font-size: 1.2rem;
+        border-radius: 30px;
+      }
+    }
 
-  .game-list {
-    gap: 16px; /* чуть меньше отступ */
-  }
+    @media screen and (max-width: 480px) {
+      h1 {
+        font-size: 1.8rem;
+      }
+      .game-item {
+        min-height: 70px;
+        font-size: 1rem;
+        border-radius: 25px;
+      }
+    }
 
-  .game-item {
-    min-height: 80px;
-    font-size: 1.2rem;
-    border-radius: 30px;
-  }
-}
-
-@media screen and (max-width: 480px) {
-  h1 {
-    font-size: 1.8rem;
-  }
-
-  .game-item {
-    min-height: 70px;
-    font-size: 1rem;
-    border-radius: 25px;
-  }
-}	  
-
-</style>
+    /* iOS-специфичные стили: увеличиваем интерфейс */
+    .ios h1 {
+      font-size: 3.5rem;
+    }
+    .ios .game-item {
+      min-height: 120px;
+      font-size: 1.7rem;
+      border-radius: 50px;
+    }
+    @media screen and (max-width: 768px) {
+      .ios h1 {
+        font-size: 2.8rem;
+      }
+      .ios .game-item {
+        min-height: 100px;
+        font-size: 1.4rem;
+        border-radius: 40px;
+      }
+    }
+    @media screen and (max-width: 480px) {
+      .ios h1 {
+        font-size: 2.2rem;
+      }
+      .ios .game-item {
+        min-height: 90px;
+        font-size: 1.2rem;
+        border-radius: 35px;
+      }
+    }
+  </style>
 </head>
 <body>
   <!-- Анимационный фон с кружками -->
@@ -248,10 +284,11 @@ h1 {
       <a class="game-link" href="/minesweeper.html">Сапёр</a>
     </div>
     <div class="game-item flappy">
-      <span>Flappy Bird</span>
+      <!-- Оборачиваем текст в ссылку для обеспечения кликабельности всей области -->
+      <a class="game-link" href="/flappy.html">Flappy Bird</a>
     </div>
     <div class="game-item pacman">
-      <span>Pac-Man</span>
+      <a class="game-link" href="/pacman.html">Pac-Man</a>
     </div>
   </div>
   

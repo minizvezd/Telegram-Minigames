@@ -3,15 +3,16 @@
 <head>
   <meta charset="UTF-8" />
   <title>Minigames</title>
-
-  <!-- Чтобы на iOS было немного крупнее: -->
+  
+  <!-- Подсказка iOS: слегка увеличить масштаб -->
   <meta name="viewport" content="width=device-width, initial-scale=1.1, user-scalable=no">
 
-  <!-- Подключаем внешний файл стилей -->
-  <link rel="stylesheet" href="style.css">
+  <!-- ВАЖНО: Подключаем style.css через относительный путь 
+       (т.к. style.css лежит в той же папке "templates") -->
+  <link rel="stylesheet" href="./style.css">
 </head>
 <body>
-  <!-- Анимационный фон с кружками -->
+  <!-- Анимационный фон -->
   <div class="animation-background">
     <div class="circle"></div>
     <div class="circle"></div>
@@ -20,25 +21,26 @@
     <div class="circle"></div>
   </div>
 
-  <!-- Заголовок -->
   <h1>Minigames</h1>
 
-  <!-- Список мини-игр -->
   <div class="game-list">
-    <!-- КАЖДАЯ .game-item - это <a>, чтобы весь овал был кликабельным -->
-    <a class="game-item snake" href="/snake.html">
+    <!-- 
+      Вместо <div> используем <a>, чтобы весь овал 
+      был кликабельным. Указываем пути на игры. 
+    -->
+    <a class="game-item snake" href="./snake.html">
       <span>Змейка</span>
     </a>
-    <a class="game-item tetris" href="/tetris.html">
+    <a class="game-item tetris" href="./tetris.html">
       <span>Тетрис</span>
     </a>
-    <a class="game-item pong" href="/pong.html">
+    <a class="game-item pong" href="./pong.html">
       <span>Пинг понг</span>
     </a>
-    <a class="game-item game2048" href="/2048.html">
+    <a class="game-item game2048" href="./2048.html">
       <span>2048</span>
     </a>
-    <a class="game-item minesweeper" href="/minesweeper.html">
+    <a class="game-item minesweeper" href="./minesweeper.html">
       <span>Сапёр</span>
     </a>
     <a class="game-item flappy" href="#">

@@ -7,8 +7,16 @@
 }
 
 .game-link {
-    text-decoration: none;
-	color: #fff;
+  text-decoration: none;
+  color: #fff;
+}
+
+/* Делаем ссылку блочным элементом для полной кликабельности */
+.game-item .game-link {
+  display: block;
+  width: 100%;
+  height: 100%;
+  -webkit-tap-highlight-color: transparent; /* Убираем подсветку при нажатии в iOS */
 }
 
 body {
@@ -35,7 +43,7 @@ h1 {
   width: 100%;
   height: 100%;
   overflow: hidden;
-  z-index: -1; /* чтобы фон был позади основного контента */
+  z-index: -1;
 }
 
 /* Кружки для анимации */
@@ -45,8 +53,6 @@ h1 {
   background: rgba(255, 255, 255, 0.08);
   animation: float 20s linear infinite;
 }
-
-/* Псевдослучайные размеры и расположение кружков */
 .circle:nth-child(1) {
   width: 150px;
   height: 150px;
@@ -106,7 +112,7 @@ h1 {
   justify-content: center;
 }
 
-/* Оформление овалов с мини-играми */
+/* Оформление кнопок (овалов) с мини-играми */
 .game-item {
   position: relative;
   width: 100%;
@@ -115,7 +121,6 @@ h1 {
   border-radius: 50px;
   overflow: hidden;
   cursor: pointer;
-
   display: flex;
   align-items: center;
   justify-content: center;
@@ -124,32 +129,26 @@ h1 {
   font-weight: bold;
   letter-spacing: 1px;
   text-align: center;
-
-  /* Плавная анимация при наведении */
   transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
 
-/*
-  Псевдоэлемент для затемнённой и (при желании) слегка размытой картинки.
-  Можно регулировать blur(...) и brightness(...).
-*/
+/* Псевдоэлемент для затемнённого и размытого фона */
 .game-item::before {
   content: "";
   position: absolute;
-  top: 0; 
-  left: 0; 
-  width: 100%; 
+  top: 0;
+  left: 0;
+  width: 100%;
   height: 100%;
   z-index: -1;
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
-  /* Затемнённая + немного размытия */
   filter: blur(4px) brightness(0.4);
   transition: filter 0.3s ease;
 }
 
-/* Ховер-эффект: немного “осветляем”, уменьшаем blur */
+/* Ховер-эффект */
 .game-item:hover {
   transform: scale(1.05);
   box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
@@ -158,7 +157,7 @@ h1 {
   filter: blur(2px) brightness(0.6);
 }
 
-/* Подключаем фоновые изображения для каждой конкретной игры */
+/* Фоновые изображения для каждой игры */
 .snake::before {
   background-image: url("images/snake.jpg");
 }
@@ -181,3 +180,59 @@ h1 {
   background-image: url("images/pacman.jpg");
 }
 
+/* Адаптивные стили для мобильных устройств */
+@media screen and (max-width: 768px) {
+  h1 {
+    margin-top: 20px;
+    font-size: 2.2rem;
+  }
+  .game-list {
+    gap: 16px;
+  }
+  .game-item {
+    min-height: 80px;
+    font-size: 1.2rem;
+    border-radius: 30px;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  h1 {
+    font-size: 1.8rem;
+  }
+  .game-item {
+    min-height: 70px;
+    font-size: 1rem;
+    border-radius: 25px;
+  }
+}
+
+/* iOS-специфичные стили для увеличенного интерфейса */
+.ios h1 {
+  font-size: 3.5rem;
+}
+.ios .game-item {
+  min-height: 120px;
+  font-size: 1.7rem;
+  border-radius: 50px;
+}
+@media screen and (max-width: 768px) {
+  .ios h1 {
+    font-size: 2.8rem;
+  }
+  .ios .game-item {
+    min-height: 100px;
+    font-size: 1.4rem;
+    border-radius: 40px;
+  }
+}
+@media screen and (max-width: 480px) {
+  .ios h1 {
+    font-size: 2.2rem;
+  }
+  .ios .game-item {
+    min-height: 90px;
+    font-size: 1.2rem;
+    border-radius: 35px;
+  }
+}

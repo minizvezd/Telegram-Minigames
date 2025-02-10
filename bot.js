@@ -4,7 +4,7 @@ const {connectDB, Record} = require('./db');
 
 connectDB();
 
-const bot = new Telegraf("7983006290:AAGGq-0BtQLKAncpMJZNKnYOJj5sgFpVtZw");
+const bot = new Telegraf("----");
 
 bot.command('start', (ctx) => {
     ctx.reply('Все мои возможности', main_menu);

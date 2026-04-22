@@ -31,6 +31,7 @@
       text-align:center;
       padding:10px;
       position:relative;
+      box-sizing:border-box;
     }
     .back-button {
       position:absolute;
@@ -39,7 +40,7 @@
       text-decoration:none;
       background:#333;
       color:#fff;
-      padding:6px12px;
+      padding:6px 12px;
       border-radius:4px;
       font-size:14px;
     }
@@ -54,7 +55,7 @@
       margin:10px;
       font-size:14px;
       background:#333;
-      padding:6px10px;
+      padding:6px 10px;
       border-radius:4px;
       line-height:1.4;
       max-width:500px;
@@ -66,11 +67,16 @@
     }
     #tetrisContainer {
       position:relative;
-      margin:10px auto;
+      margin:10px auto 20px;
       display:flex;
-      justify-content:center; /* центр */
+      justify-content:center;
+      width:100%;
+      max-width:260px;
     }
     #tetrisCanvas {
+      width:100%;
+      max-width:200px;
+      height:auto;
       border:2px solid #999;
       background:#111;
       display:block;
@@ -86,10 +92,11 @@
       border-radius:8px;
       text-align:center;
       display:none;
+      z-index:2;
     }
     #gameOver button {
       margin-top:10px;
-      padding:8px16px;
+      padding:8px 16px;
       background:#f66;
       border:none;
       cursor:pointer;
@@ -101,9 +108,14 @@
       background:#d55;
     }
     @media(max-width:600px){
+      .instructions {
+        margin:10px 12px;
+      }
+      #tetrisContainer {
+        max-width:220px;
+      }
       #tetrisCanvas {
-        width:180px !important;
-        height:360px !important;
+        max-width:180px;
       }
     }
   </style>
@@ -137,7 +149,7 @@
     document.addEventListener("touchmove", e=> e.preventDefault(), {passive:false});
     document.addEventListener("selectstart", e=> e.preventDefault());
 
-   const canvas=document.getElementById("tetrisCanvas");
+    const canvas=document.getElementById("tetrisCanvas");
     const ctx=canvas.getContext("2d");
 
     const COLS=10, ROWS=20, BLOCK_SIZE=20;
@@ -145,13 +157,13 @@
     canvas.height=ROWS*BLOCK_SIZE;
 
     const SHAPES=[
-      [[1,1,1],[0,1,0]],   // T
-      [[1,1],[1,1]],       // O
-      [[1,0,0],[1,1,1]],   // L
-      [[0,0,1],[1,1,1]],   // J
-      [[0,1,1],[1,1,0]],   // S
-      [[1,1,0],[0,1,1]],   // Z
-      [[1,1,1,1]]          // I
+      [[1,1,1],[0,1,0]],
+      [[1,1],[1,1]],
+      [[1,0,0],[1,1,1]],
+      [[0,0,1],[1,1,1]],
+      [[0,1,1],[1,1,0]],
+      [[1,1,0],[0,1,1]],
+      [[1,1,1,1]]
     ];
     const COLORS=["cyan","yellow","purple","green","red","blue","orange"];
 
@@ -247,7 +259,7 @@
       currentY++;
       if(collide(board,currentPiece,currentX,currentY)){
         currentY--;
-        score+=1; // за поставленную фигуру
+        score+=1;
         merge(board,currentPiece,currentX,currentY,currentColor);
         lineClear();
         spawnPiece();
@@ -276,7 +288,6 @@
       ctx.fillStyle="#111";
       ctx.fillRect(0,0,canvas.width,canvas.height);
 
-      // поле
       for(let r=0;r<ROWS;r++){
         for(let c=0;c<COLS;c++){
           let val=board[r][c];
@@ -285,7 +296,6 @@
           }
         }
       }
-      // фигура
       if(currentPiece){
         for(let r=0;r<currentPiece.length;r++){
           for(let c=0;c<currentPiece[r].length;c++){
@@ -324,7 +334,6 @@
       animationFrameId=requestAnimationFrame(update);
     }
 
-    // Управление клавиатурой
     document.addEventListener("keydown", e=>{
       if(isGameOver)return;
       switch(e.key){
@@ -350,7 +359,6 @@
       }
     });
 
-    // Свайпы
     canvas.addEventListener("touchstart", e=>{
       let t=e.touches[0];
       touchStartX=t.clientX; 
@@ -363,22 +371,18 @@
       let dy=t.clientY - touchStartY;
       if(Math.abs(dx)>Math.abs(dy)){
         if(dx>SWIPE_THRESHOLD){
-          // вправо
           if(!collide(board,currentPiece,currentX+1,currentY)){
             currentX++;
           }
         } else if(dx< -SWIPE_THRESHOLD){
-          // влево
           if(!collide(board,currentPiece,currentX-1,currentY)){
             currentX--;
           }
         }
       } else {
         if(dy>SWIPE_THRESHOLD){
-          // вниз
           drop();
         } else if(dy< -SWIPE_THRESHOLD){
-          // вверх => поворот
           let rotated=rotate(currentPiece);
           if(!collide(board,rotated,currentX,currentY)){
             currentPiece=rotated;
@@ -387,7 +391,6 @@
       }
     });
 
-    // Старт
     restartGame();
   </script>
 

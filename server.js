@@ -11,37 +11,46 @@ connectDB();
 app.use(cors());
 app.use(express.json());
 
-const sharedLayoutStyles = `
+const TELEGRAM_VIEWPORT_META = '<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">';
+
+const sharedLayoutMarkup = `
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style id="shared-layout-styles">
   :root {
-    --tg-safe-top: 0px;
-    --tg-safe-right: 0px;
-    --tg-safe-bottom: 0px;
-    --tg-safe-left: 0px;
-    --tg-overlay-top: 0px;
+    --tg-viewport-height: 100vh;
+    --tg-content-safe-area-inset-top: env(safe-area-inset-top, 0px);
+    --tg-content-safe-area-inset-right: env(safe-area-inset-right, 0px);
+    --tg-content-safe-area-inset-bottom: env(safe-area-inset-bottom, 0px);
+    --tg-content-safe-area-inset-left: env(safe-area-inset-left, 0px);
   }
 
   html,
   body {
-    min-height: 100%;
+    margin: 0;
+    padding: 0;
+    height: var(--tg-viewport-height, 100vh) !important;
+    min-height: var(--tg-viewport-height, 100vh) !important;
+    overflow: hidden !important;
+    box-sizing: border-box;
+    overscroll-behavior: none;
   }
 
   body {
-    min-height: 100dvh !important;
-    padding-top: calc(max(env(safe-area-inset-top, 0px), var(--tg-safe-top)) + var(--tg-overlay-top)) !important;
-    padding-right: max(env(safe-area-inset-right, 0px), var(--tg-safe-right)) !important;
-    padding-bottom: max(env(safe-area-inset-bottom, 0px), var(--tg-safe-bottom)) !important;
-    padding-left: max(env(safe-area-inset-left, 0px), var(--tg-safe-left)) !important;
-    box-sizing: border-box;
+    padding-top: var(--tg-content-safe-area-inset-top, env(safe-area-inset-top, 0px)) !important;
+    padding-right: var(--tg-content-safe-area-inset-right, env(safe-area-inset-right, 0px)) !important;
+    padding-bottom: var(--tg-content-safe-area-inset-bottom, env(safe-area-inset-bottom, 0px)) !important;
+    padding-left: var(--tg-content-safe-area-inset-left, env(safe-area-inset-left, 0px)) !important;
   }
 
   header {
+    position: relative;
     box-sizing: border-box;
     display: flex !important;
     align-items: center;
     justify-content: center;
     min-height: 88px;
     padding: 16px 20px !important;
+    z-index: 100;
   }
 
   header h1 {
@@ -71,20 +80,6 @@ const sharedLayoutStyles = `
     letter-spacing: 0.2px;
     box-shadow: 0 2px 0 rgba(0, 0, 0, 0.18);
     -webkit-tap-highlight-color: transparent;
-    transition: background 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
-  }
-
-  .back-button:hover {
-    background: #3a3d45 !important;
-  }
-
-  .back-button:active {
-    transform: translateY(-50%) scale(0.98) !important;
-  }
-
-  .back-button:focus-visible {
-    outline: 2px solid rgba(255, 255, 255, 0.7);
-    outline-offset: 2px;
   }
 
   .tg-webapp .back-button {
@@ -92,13 +87,14 @@ const sharedLayoutStyles = `
   }
 
   .tg-webapp header {
-    min-height: 124px !important;
-    padding-top: 52px !important;
-    padding-bottom: 14px !important;
+    min-height: 112px !important;
+    padding-top: 40px !important;
+    padding-bottom: 10px !important;
   }
 
   .tg-webapp header h1 {
-    padding: 0 24px !important;
+    padding: 0 16px !important;
+    font-size: 16px !important;
   }
 
   @media (max-width: 600px) {
@@ -121,81 +117,77 @@ const sharedLayoutStyles = `
     }
 
     .tg-webapp header {
-      min-height: 118px !important;
-      padding-top: 48px !important;
-      padding-bottom: 12px !important;
+      min-height: 104px !important;
+      padding-top: 34px !important;
+      padding-bottom: 8px !important;
     }
 
     .tg-webapp header h1 {
-      padding: 0 20px !important;
-      font-size: 17px !important;
+      padding: 0 12px !important;
+      font-size: 15px !important;
     }
   }
-</style>`;
-
-const sharedTelegramScript = `
+</style>
 <script id="shared-telegram-safe-area-script">
-  (function () {
-    const root = document.documentElement;
+  (function waitForTelegram() {
     const tg = window.Telegram && window.Telegram.WebApp;
-    const isiOS = /iP(ad|hone|od)/.test(navigator.userAgent || "");
 
-    function px(value) {
-      return typeof value === "number" && isFinite(value) ? Math.max(value, 0) + "px" : "0px";
+    if (!tg) {
+      setTimeout(waitForTelegram, 50);
+      return;
     }
 
-    function getFullscreenOverlayTop() {
-      const screenHeight = Math.max(window.screen?.availHeight || 0, window.screen?.height || 0);
-      const ratio = screenHeight ? window.innerHeight / screenHeight : 0;
-      const isFullscreenLike = ratio > 0.82;
-      return isiOS && isFullscreenLike ? 56 : 0;
+    const root = document.documentElement;
+
+    function px(value, fallback) {
+      if (typeof value === "number" && isFinite(value) && value >= 0) {
+        return `${value}px`;
+      }
+      return fallback;
     }
 
-    function applyInsets() {
-      if (!tg) return;
-
-      const safe = tg.safeAreaInset || {};
-      const content = tg.contentSafeAreaInset || {};
-      const overlayTop = getFullscreenOverlayTop();
-
-      root.style.setProperty("--tg-safe-top", px(Math.max(content.top || 0, safe.top || 0)));
-      root.style.setProperty("--tg-safe-right", px(Math.max(content.right || 0, safe.right || 0)));
-      root.style.setProperty("--tg-safe-bottom", px(Math.max(content.bottom || 0, safe.bottom || 0)));
-      root.style.setProperty("--tg-safe-left", px(Math.max(content.left || 0, safe.left || 0)));
-      root.style.setProperty("--tg-overlay-top", px(overlayTop));
+    function applyViewport() {
+      const safe = tg.contentSafeAreaInset || tg.safeAreaInset || {};
       root.classList.add("tg-webapp");
+      root.style.setProperty("--tg-viewport-height", px(tg.viewportHeight, "100vh"));
+      root.style.setProperty("--tg-content-safe-area-inset-top", px(safe.top, "env(safe-area-inset-top, 0px)"));
+      root.style.setProperty("--tg-content-safe-area-inset-right", px(safe.right, "env(safe-area-inset-right, 0px)"));
+      root.style.setProperty("--tg-content-safe-area-inset-bottom", px(safe.bottom, "env(safe-area-inset-bottom, 0px)"));
+      root.style.setProperty("--tg-content-safe-area-inset-left", px(safe.left, "env(safe-area-inset-left, 0px)"));
     }
 
-    if (!tg) return;
-
-    tg.ready && tg.ready();
-    tg.expand && tg.expand();
-    applyInsets();
-    setTimeout(applyInsets, 150);
-    setTimeout(applyInsets, 500);
+    tg.ready();
+    tg.expand();
+    applyViewport();
+    setTimeout(applyViewport, 120);
+    setTimeout(applyViewport, 400);
 
     if (tg.onEvent) {
-      tg.onEvent("safeAreaChanged", applyInsets);
-      tg.onEvent("contentSafeAreaChanged", applyInsets);
-      tg.onEvent("viewportChanged", applyInsets);
+      tg.onEvent("viewportChanged", applyViewport);
+      tg.onEvent("safeAreaChanged", applyViewport);
+      tg.onEvent("contentSafeAreaChanged", applyViewport);
     }
 
-    window.addEventListener("resize", applyInsets, { passive: true });
+    window.addEventListener("resize", applyViewport, { passive: true });
   })();
 </script>`;
 
 function injectSharedMarkup(html) {
+  if (html.includes("<head>") && /<meta\s+name=["']viewport["']/i.test(html)) {
+    html = html.replace(/<meta\s+name=["']viewport["'][^>]*>/i, TELEGRAM_VIEWPORT_META);
+  } else if (html.includes("<head>")) {
+    html = html.replace("<head>", `<head>\n${TELEGRAM_VIEWPORT_META}`);
+  }
+
   if (html.includes('id="shared-layout-styles"')) {
     return html;
   }
 
-  const sharedMarkup = `${sharedLayoutStyles}\n${sharedTelegramScript}`;
-
   if (html.includes("</head>")) {
-    return html.replace("</head>", `${sharedMarkup}\n</head>`);
+    return html.replace("</head>", `${sharedLayoutMarkup}\n</head>`);
   }
 
-  return `${sharedMarkup}\n${html}`;
+  return `${sharedLayoutMarkup}\n${html}`;
 }
 
 function sendTemplate(res, fileName) {

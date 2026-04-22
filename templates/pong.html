@@ -154,6 +154,7 @@
 
   // Drag с pointer events
   let isPointerDown=false;
+  let paddleGrabOffsetY=paddleHeight/2;
 
   function initGame(){
     leftPaddleY=canvas.height/2 - paddleHeight/2;
@@ -265,39 +266,54 @@
     requestAnimationFrame(update);
   }
 
+  function getCanvasPointerPosition(e){
+    const rect=canvas.getBoundingClientRect();
+    const scaleX=canvas.width/rect.width;
+    const scaleY=canvas.height/rect.height;
+
+    return {
+      x:(e.clientX-rect.left)*scaleX,
+      y:(e.clientY-rect.top)*scaleY
+    };
+  }
+
   // Pointer Events: двигаем левую ракетку, если нажали в левую половину canvas
   canvas.addEventListener("pointerdown", e=>{
-    const rect=canvas.getBoundingClientRect();
-    const x=e.clientX-rect.left;
-    const y=e.clientY-rect.top;
+    const pos=getCanvasPointerPosition(e);
 
     // Проверяем, нажали ли на левую половину
-    if(x<=canvas.width/2){
+    if(pos.x<=canvas.width/2){
       isPointerDown=true;
-      // Устанавливаем Y ракетки по центру пальца
-      moveLeftPaddle(y);
+      paddleGrabOffsetY=pos.y-leftPaddleY;
+
+      if(paddleGrabOffsetY<0 || paddleGrabOffsetY>paddleHeight){
+        paddleGrabOffsetY=paddleHeight/2;
+      }
+
+      canvas.setPointerCapture?.(e.pointerId);
+      moveLeftPaddle(pos.y);
     }
   });
   canvas.addEventListener("pointermove", e=>{
     if(isPointerDown){
-      const rect=canvas.getBoundingClientRect();
-      const y=e.clientY-rect.top;
-      moveLeftPaddle(y);
+      const pos=getCanvasPointerPosition(e);
+      moveLeftPaddle(pos.y);
     }
   });
   canvas.addEventListener("pointerup", e=>{
     isPointerDown=false;
+    canvas.releasePointerCapture?.(e.pointerId);
   });
   canvas.addEventListener("pointercancel", e=>{
     isPointerDown=false;
+    canvas.releasePointerCapture?.(e.pointerId);
   });
   canvas.addEventListener("pointerleave", e=>{
     isPointerDown=false;
   });
 
-  // Двигаем левую ракетку так, чтобы её середина была в точке y
-  function moveLeftPaddle(y){
-    let newY = y - paddleHeight/2;
+  function moveLeftPaddle(pointerY){
+    let newY = pointerY - paddleGrabOffsetY;
     if(newY<0) newY=0;
     if(newY>canvas.height-paddleHeight) newY=canvas.height-paddleHeight;
     leftPaddleY=newY;

@@ -78,6 +78,7 @@
       display:grid;
       grid-template-columns:repeat(4,1fr);
       grid-gap:10px;
+      outline:none;
     }
     .cell {
       width:70px;
@@ -155,7 +156,7 @@
 
   <div id="boardContainer">
     <div style="position:relative;">
-      <div id="board"></div>
+      <div id="board" tabindex="0"></div>
       <div id="gameOver">
         <h2 id="finalMsg"></h2>
         <button onclick="restartGame()">Играть снова</button>
@@ -190,6 +191,12 @@
       addNewTile();
       drawBoard();
       gameOverDiv.style.display="none";
+      focusGame();
+    }
+
+    function focusGame(){
+      boardElem.focus({preventScroll:true});
+      window.focus();
     }
 
     function drawBoard(){
@@ -229,26 +236,82 @@
       scoreVal.textContent=score;
     }
 
-    document.addEventListener("keydown", e=>{
+    function handleMove(direction){
       let moved=false;
-      switch(e.key){
-        case"ArrowLeft":case"a":case"A":
-          moved=moveLeft();break;
-        case"ArrowRight":case"d":case"D":
-          moved=moveRight();break;
-        case"ArrowUp":case"w":case"W":
-          moved=moveUp();break;
-        case"ArrowDown":case"s":case"S":
-          moved=moveDown();break;
+
+      switch(direction){
+        case "left":
+          moved=moveLeft();
+          break;
+        case "right":
+          moved=moveRight();
+          break;
+        case "up":
+          moved=moveUp();
+          break;
+        case "down":
+          moved=moveDown();
+          break;
       }
+
       if(moved) afterMove();
-    });
+      return moved;
+    }
+
+    function handleKeyDown(e){
+      let direction=null;
+
+      switch(e.code){
+        case "ArrowLeft":
+        case "KeyA":
+          direction="left";
+          break;
+        case "ArrowRight":
+        case "KeyD":
+          direction="right";
+          break;
+        case "ArrowUp":
+        case "KeyW":
+          direction="up";
+          break;
+        case "ArrowDown":
+        case "KeyS":
+          direction="down";
+          break;
+      }
+
+      if(!direction){
+        switch(e.key){
+          case"ArrowLeft":case"a":case"A":
+            direction="left";
+            break;
+          case"ArrowRight":case"d":case"D":
+            direction="right";
+            break;
+          case"ArrowUp":case"w":case"W":
+            direction="up";
+            break;
+          case"ArrowDown":case"s":case"S":
+            direction="down";
+            break;
+        }
+      }
+
+      if(!direction) return;
+
+      e.preventDefault();
+      handleMove(direction);
+    }
+
+    window.addEventListener("keydown", handleKeyDown, {passive:false});
+    document.addEventListener("keydown", handleKeyDown, {passive:false});
 
     function afterMove(){
       addNewTile();
       drawBoard();
       updateScore();
       checkGameOver();
+      focusGame();
     }
 
     function moveLeft(){
@@ -335,6 +398,7 @@
     }
 
     boardElem.addEventListener("touchstart", e=>{
+      focusGame();
       let t=e.touches[0];
       touchStartX=t.clientX;
       touchStartY=t.clientY;
@@ -346,19 +410,22 @@
       let moved=false;
       if(Math.abs(dx)>Math.abs(dy)){
         if(dx>SWIPE_THRESHOLD){
-          moved=moveRight();
+          moved=handleMove("right");
         } else if(dx< -SWIPE_THRESHOLD){
-          moved=moveLeft();
+          moved=handleMove("left");
         }
       } else {
         if(dy>SWIPE_THRESHOLD){
-          moved=moveDown();
+          moved=handleMove("down");
         } else if(dy< -SWIPE_THRESHOLD){
-          moved=moveUp();
+          moved=handleMove("up");
         }
       }
-      if(moved) afterMove();
+      if(moved) focusGame();
     });
+
+    boardElem.addEventListener("pointerdown", focusGame);
+    window.addEventListener("click", focusGame);
 
     function checkGameOver(){
       for(let r=0;r<size;r++){

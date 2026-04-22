@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <title>Тетрис</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
 
   <style>
     html, body {
@@ -23,6 +23,15 @@
       display:flex;
       flex-direction:column;
       align-items:center;
+    }
+    body {
+      padding-top: calc(max(env(safe-area-inset-top, 0px), var(--tg-safe-top, 0px)) + var(--tg-overlay-top, 0px)) !important;
+      padding-right: max(env(safe-area-inset-right, 0px), var(--tg-safe-right, 0px)) !important;
+      padding-bottom: max(env(safe-area-inset-bottom, 0px), var(--tg-safe-bottom, 0px)) !important;
+      padding-left: max(env(safe-area-inset-left, 0px), var(--tg-safe-left, 0px)) !important;
+      box-sizing:border-box;
+      min-height:100dvh;
+      width:100%;
     }
     header {
       width:100%;

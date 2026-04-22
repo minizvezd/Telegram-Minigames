@@ -6,22 +6,22 @@
       "use": "@vercel/node"
     },
     {
-      "src": "templates/**/*.html",
+      "src": "templates/images/**/*.jpg",
       "use": "@vercel/static"
-    },
-	{
-		"src": "templates/images/**/*.jpg",
-      "use": "@vercel/static"
-	}
+    }
   ],
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "server.js"
+      "dest": "/server.js"
+    },
+    {
+      "src": "/images/(.*)",
+      "dest": "/templates/images/$1"
     },
     {
       "src": "/(.*)",
-      "dest": "/templates/$1"
+      "dest": "/server.js"
     }
   ]
 }

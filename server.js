@@ -87,17 +87,17 @@ const sharedLayoutStyles = `
     outline-offset: 2px;
   }
 
-  .tg-ios-fullscreen .back-button {
+  .tg-webapp .back-button {
     display: none !important;
   }
 
-  .tg-ios-fullscreen header {
+  .tg-webapp header {
     min-height: 124px !important;
     padding-top: 52px !important;
     padding-bottom: 14px !important;
   }
 
-  .tg-ios-fullscreen header h1 {
+  .tg-webapp header h1 {
     padding: 0 24px !important;
   }
 
@@ -120,13 +120,13 @@ const sharedLayoutStyles = `
       font-size: 15px !important;
     }
 
-    .tg-ios-fullscreen header {
+    .tg-webapp header {
       min-height: 118px !important;
       padding-top: 48px !important;
       padding-bottom: 12px !important;
     }
 
-    .tg-ios-fullscreen header h1 {
+    .tg-webapp header h1 {
       padding: 0 20px !important;
       font-size: 17px !important;
     }
@@ -163,7 +163,7 @@ const sharedTelegramScript = `
       root.style.setProperty("--tg-safe-bottom", px(Math.max(content.bottom || 0, safe.bottom || 0)));
       root.style.setProperty("--tg-safe-left", px(Math.max(content.left || 0, safe.left || 0)));
       root.style.setProperty("--tg-overlay-top", px(overlayTop));
-      root.classList.toggle("tg-ios-fullscreen", overlayTop > 0);
+      root.classList.add("tg-webapp");
     }
 
     if (!tg) return;

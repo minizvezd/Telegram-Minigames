@@ -14,7 +14,7 @@
         margin: 0;
         padding: 0;
         box-sizing: border-box;
-        font-family: sans-serif;
+        font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       }
 
       :root {
@@ -23,7 +23,10 @@
       }
 
       body {
-        background: #0b0e33;
+        background:
+          radial-gradient(circle at top left, rgba(124, 58, 237, 0.22), transparent 30%),
+          radial-gradient(circle at top right, rgba(103, 232, 249, 0.16), transparent 28%),
+          linear-gradient(180deg, #0b0e33 0%, #090b22 100%);
         color: #fff;
         min-height: 100dvh;
         position: relative;
@@ -32,18 +35,51 @@
 
       .page-shell {
         position: relative;
-        width: min(100%, 860px);
+        width: min(100%, 920px);
         margin: 0 auto;
-        padding: calc(var(--app-safe-top) + 18px) clamp(18px, 4vw, 28px)
-          calc(var(--app-safe-bottom) + 28px);
+        padding: calc(var(--app-safe-top) + 24px) clamp(16px, 4vw, 28px)
+          calc(var(--app-safe-bottom) + 30px);
+      }
+
+      .hero {
+        display: grid;
+        gap: 12px;
+        justify-items: center;
+        text-align: center;
+      }
+
+      .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 34px;
+        padding: 0 14px;
+        border-radius: 999px;
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        background: rgba(255, 255, 255, 0.08);
+        color: rgba(255, 255, 255, 0.84);
+        font-size: 0.88rem;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
       }
 
       h1 {
         text-align: center;
         margin: 0;
-        font-size: clamp(3.2rem, 8vw, 4.5rem);
-        line-height: 1.05;
-        letter-spacing: 2px;
+        font-size: clamp(3.2rem, 8vw, 4.8rem);
+        line-height: 0.98;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      .subtitle {
+        max-width: 620px;
+        color: rgba(255, 255, 255, 0.72);
+        font-size: clamp(1rem, 2.8vw, 1.08rem);
+        line-height: 1.55;
       }
 
       .animation-background {
@@ -57,106 +93,113 @@
         position: absolute;
         border-radius: 50%;
         background: rgba(255, 255, 255, 0.08);
+        filter: blur(4px);
         animation: float 20s linear infinite;
       }
 
       .circle:nth-child(1) {
-        width: 150px;
-        height: 150px;
-        top: 10%;
-        left: 15%;
+        width: 180px;
+        height: 180px;
+        top: 8%;
+        left: 10%;
       }
 
       .circle:nth-child(2) {
-        width: 100px;
-        height: 100px;
-        top: 50%;
-        left: 30%;
-        animation-duration: 25s;
+        width: 120px;
+        height: 120px;
+        top: 52%;
+        left: 18%;
+        animation-duration: 24s;
       }
 
       .circle:nth-child(3) {
-        width: 200px;
-        height: 200px;
-        top: 20%;
-        left: 70%;
-        animation-duration: 30s;
+        width: 220px;
+        height: 220px;
+        top: 14%;
+        left: 72%;
+        animation-duration: 28s;
       }
 
       .circle:nth-child(4) {
-        width: 120px;
-        height: 120px;
-        top: 70%;
-        left: 80%;
+        width: 130px;
+        height: 130px;
+        top: 74%;
+        left: 78%;
         animation-duration: 18s;
       }
 
       .circle:nth-child(5) {
-        width: 80px;
-        height: 80px;
-        top: 80%;
-        left: 25%;
+        width: 90px;
+        height: 90px;
+        top: 82%;
+        left: 30%;
         animation-duration: 22s;
       }
 
       @keyframes float {
         0% {
-          transform: translate(0, 0);
+          transform: translate3d(0, 0, 0);
         }
         50% {
-          transform: translate(20px, -50px);
+          transform: translate3d(18px, -44px, 0);
         }
         100% {
-          transform: translate(0, 0);
+          transform: translate3d(0, 0, 0);
         }
       }
 
       .game-list {
         margin: 28px auto 0;
         width: 100%;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 20px;
-        justify-content: center;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
       }
 
       .game-item {
         position: relative;
-        width: 100%;
-        min-height: 108px;
-        border-radius: 44px;
+        min-height: 158px;
+        border-radius: 28px;
         overflow: hidden;
         cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        text-transform: uppercase;
-        font-size: 1.55rem;
-        font-weight: bold;
-        letter-spacing: 1px;
-        text-align: center;
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        transition: transform 0.24s ease, box-shadow 0.24s ease, border-color 0.24s ease;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        box-shadow: 0 18px 36px rgba(0, 0, 0, 0.25);
       }
 
       .game-item::before {
         content: "";
         position: absolute;
         inset: 0;
-        z-index: -1;
+        z-index: 0;
         background-position: center;
         background-repeat: no-repeat;
         background-size: cover;
-        filter: blur(4px) brightness(0.4);
-        transition: filter 0.3s ease;
+        transform: scale(1.04);
+        filter: blur(2px) brightness(0.34);
+        transition: transform 0.24s ease, filter 0.24s ease;
       }
 
-      .game-item:hover {
-        transform: scale(1.03);
-        box-shadow: 0 0 15px rgba(255, 255, 255, 0.3);
+      .game-item::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: 0;
+        background:
+          linear-gradient(180deg, rgba(9, 11, 22, 0.05) 0%, rgba(9, 11, 22, 0.72) 100%);
       }
 
-      .game-item:hover::before {
-        filter: blur(2px) brightness(0.6);
+      .game-item:hover,
+      .game-item:active {
+        transform: translateY(-4px);
+        box-shadow: 0 24px 42px rgba(0, 0, 0, 0.34);
+        border-color: rgba(255, 255, 255, 0.22);
+      }
+
+      .game-item:hover::before,
+      .game-item:active::before {
+        transform: scale(1.08);
+        filter: blur(1px) brightness(0.44);
       }
 
       .snake::before {
@@ -180,48 +223,69 @@
       }
 
       .game-link {
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        position: relative;
+        z-index: 1;
+        display: grid;
+        align-content: end;
         width: 100%;
-        min-height: 108px;
-        padding: 18px 20px;
+        min-height: 158px;
+        padding: 20px;
         text-decoration: none;
         color: #fff;
         -webkit-tap-highlight-color: transparent;
       }
 
+      .game-title {
+        font-size: 1.45rem;
+        font-weight: 800;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      .game-caption {
+        margin-top: 8px;
+        color: rgba(255, 255, 255, 0.74);
+        font-size: 0.95rem;
+        line-height: 1.35;
+      }
+
+      .game-badge {
+        position: absolute;
+        top: 18px;
+        left: 18px;
+        z-index: 1;
+        display: inline-flex;
+        align-items: center;
+        min-height: 32px;
+        padding: 0 12px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.12);
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        color: rgba(255, 255, 255, 0.86);
+        font-size: 0.82rem;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+      }
+
+      .full-width {
+        grid-column: 1 / -1;
+      }
+
       @media screen and (max-width: 768px) {
         .page-shell {
-          padding-top: calc(var(--app-safe-top) + 14px);
+          padding-top: calc(var(--app-safe-top) + 16px);
           padding-bottom: calc(var(--app-safe-bottom) + 24px);
         }
 
         h1 {
-          font-size: clamp(2.9rem, 10vw, 3.8rem);
+          font-size: clamp(2.9rem, 10vw, 4rem);
         }
 
-        .game-list {
-          margin-top: 24px;
-          gap: 18px;
-        }
-
-        .game-item,
-        .game-link {
-          min-height: 96px;
-          border-radius: 36px;
-          font-size: 1.3rem;
-        }
-      }
-
-      @media screen and (max-width: 480px) {
-        .page-shell {
-          padding-left: 16px;
-          padding-right: 16px;
-        }
-
-        h1 {
-          font-size: clamp(2.7rem, 11vw, 3.3rem);
+        .subtitle {
+          max-width: 560px;
         }
 
         .game-list {
@@ -230,9 +294,52 @@
 
         .game-item,
         .game-link {
-          min-height: 88px;
-          border-radius: 30px;
-          font-size: 1.15rem;
+          min-height: 138px;
+        }
+
+        .game-title {
+          font-size: 1.25rem;
+        }
+
+        .game-caption {
+          font-size: 0.9rem;
+        }
+      }
+
+      @media screen and (max-width: 560px) {
+        .page-shell {
+          padding-left: 14px;
+          padding-right: 14px;
+        }
+
+        .game-list {
+          grid-template-columns: 1fr;
+        }
+
+        .game-item,
+        .game-link {
+          min-height: 124px;
+          border-radius: 24px;
+        }
+
+        .game-link {
+          padding: 18px;
+        }
+
+        .game-badge {
+          top: 14px;
+          left: 14px;
+          min-height: 30px;
+          font-size: 0.76rem;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .circle,
+        .game-item,
+        .game-item::before {
+          animation: none !important;
+          transition: none !important;
         }
       }
     </style>
@@ -247,23 +354,63 @@
     </div>
 
     <main class="page-shell">
-      <h1>Minigames</h1>
+      <section class="hero">
+        <div class="eyebrow">Telegram WebApp</div>
+        <h1>Minigames</h1>
+        <p class="subtitle">
+          Небольшая подборка игр в одном стиле: быстро открываются, одинаково выглядят и удобно играются как с телефона, так и с компьютера.
+        </p>
+      </section>
 
       <div class="game-list">
         <div class="game-item snake">
-          <a class="game-link" href="/snake.html">Змейка</a>
+          <a class="game-link" href="/snake.html" aria-label="Открыть игру Змейка">
+            <span class="game-badge">Arcade</span>
+            <div>
+              <div class="game-title">Змейка</div>
+              <div class="game-caption">Свайпы и клавиши, плавный темп и чистое поле без лишнего.</div>
+            </div>
+          </a>
         </div>
+
         <div class="game-item tetris">
-          <a class="game-link" href="/tetris.html">Тетрис</a>
+          <a class="game-link" href="/tetris.html" aria-label="Открыть игру Тетрис">
+            <span class="game-badge">Classic</span>
+            <div>
+              <div class="game-title">Тетрис</div>
+              <div class="game-caption">Падающие фигуры, быстрые повороты и аккуратный интерфейс.</div>
+            </div>
+          </a>
         </div>
+
         <div class="game-item pong">
-          <a class="game-link" href="/pong.html">Пинг понг</a>
+          <a class="game-link" href="/pong.html" aria-label="Открыть игру Пинг-понг">
+            <span class="game-badge">Duel</span>
+            <div>
+              <div class="game-title">Пинг-понг</div>
+              <div class="game-caption">Тяни по экрану слева и отбивай мяч максимально точно.</div>
+            </div>
+          </a>
         </div>
+
         <div class="game-item game2048">
-          <a class="game-link" href="/2048.html">2048</a>
+          <a class="game-link" href="/2048.html" aria-label="Открыть игру 2048">
+            <span class="game-badge">Puzzle</span>
+            <div>
+              <div class="game-title">2048</div>
+              <div class="game-caption">Объединяй плитки свайпами или клавишами и собирай большие числа.</div>
+            </div>
+          </a>
         </div>
-        <div class="game-item minesweeper">
-          <a class="game-link" href="/minesweeper.html">Сапёр</a>
+
+        <div class="game-item minesweeper full-width">
+          <a class="game-link" href="/minesweeper.html" aria-label="Открыть игру Сапёр">
+            <span class="game-badge">Logic</span>
+            <div>
+              <div class="game-title">Сапёр</div>
+              <div class="game-caption">Первый клик безопасен, на телефоне работает короткий и долгий тап.</div>
+            </div>
+          </a>
         </div>
       </div>
     </main>

@@ -141,7 +141,7 @@ const sharedLayoutMarkup = `
 
     function px(value, fallback) {
       if (typeof value === "number" && isFinite(value) && value >= 0) {
-        return `${value}px`;
+        return value + "px";
       }
       return fallback;
     }

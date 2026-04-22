@@ -11,8 +11,27 @@ connectDB();
 app.use(cors());
 app.use(express.json());
 
-const sharedBackButtonStyles = `
-<style id="shared-back-button-styles">
+const sharedLayoutStyles = `
+<style id="shared-layout-styles">
+  :root {
+    --tg-safe-top: 0px;
+    --tg-safe-right: 0px;
+    --tg-safe-bottom: 0px;
+    --tg-safe-left: 0px;
+  }
+
+  html,
+  body {
+    min-height: 100%;
+  }
+
+  body {
+    padding-top: max(env(safe-area-inset-top, 0px), var(--tg-safe-top));
+    padding-right: max(env(safe-area-inset-right, 0px), var(--tg-safe-right));
+    padding-bottom: max(env(safe-area-inset-bottom, 0px), var(--tg-safe-bottom));
+    padding-left: max(env(safe-area-inset-left, 0px), var(--tg-safe-left));
+  }
+
   header {
     box-sizing: border-box;
     display: flex !important;
@@ -86,16 +105,54 @@ const sharedBackButtonStyles = `
   }
 </style>`;
 
-function injectSharedStyles(html) {
-  if (html.includes('id="shared-back-button-styles"')) {
+const sharedTelegramScript = `
+<script id="shared-telegram-safe-area-script">
+  (function () {
+    const root = document.documentElement;
+    const tg = window.Telegram && window.Telegram.WebApp;
+
+    function px(value) {
+      return typeof value === "number" && isFinite(value) ? Math.max(value, 0) + "px" : "0px";
+    }
+
+    function applyInsets() {
+      if (!tg) return;
+
+      const safe = tg.safeAreaInset || {};
+      const content = tg.contentSafeAreaInset || {};
+
+      root.style.setProperty("--tg-safe-top", px(Math.max(content.top || 0, safe.top || 0)));
+      root.style.setProperty("--tg-safe-right", px(Math.max(content.right || 0, safe.right || 0)));
+      root.style.setProperty("--tg-safe-bottom", px(Math.max(content.bottom || 0, safe.bottom || 0)));
+      root.style.setProperty("--tg-safe-left", px(Math.max(content.left || 0, safe.left || 0)));
+    }
+
+    if (!tg) return;
+
+    tg.ready && tg.ready();
+    tg.expand && tg.expand();
+    applyInsets();
+
+    if (tg.onEvent) {
+      tg.onEvent("safeAreaChanged", applyInsets);
+      tg.onEvent("contentSafeAreaChanged", applyInsets);
+      tg.onEvent("viewportChanged", applyInsets);
+    }
+  })();
+</script>`;
+
+function injectSharedMarkup(html) {
+  if (html.includes('id="shared-layout-styles"')) {
     return html;
   }
 
+  const sharedMarkup = `${sharedLayoutStyles}\n${sharedTelegramScript}`;
+
   if (html.includes("</head>")) {
-    return html.replace("</head>", `${sharedBackButtonStyles}\n</head>`);
+    return html.replace("</head>", `${sharedMarkup}\n</head>`);
   }
 
-  return `${sharedBackButtonStyles}\n${html}`;
+  return `${sharedMarkup}\n${html}`;
 }
 
 function sendTemplate(res, fileName) {
@@ -107,7 +164,7 @@ function sendTemplate(res, fileName) {
       return res.status(500).send("Template error");
     }
 
-    res.type("html").send(injectSharedStyles(html));
+    res.type("html").send(injectSharedMarkup(html));
   });
 }
 

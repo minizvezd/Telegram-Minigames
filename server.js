@@ -138,7 +138,8 @@ const sharedLayoutMarkup = `
     }
 
     const root = document.documentElement;
-    const pathname = window.location.pathname || "/";
+    const rawPath = window.location.pathname || "/";
+    const pathname = rawPath.replace(/\/+$/, "") || "/";
     const isHome = pathname === "/" || pathname === "/index.html";
     const pageColors = {
       "/": { header: "#0b0e33", background: "#0b0e33" },
@@ -179,22 +180,27 @@ const sharedLayoutMarkup = `
       if (typeof tg.setHeaderColor === "function") {
         tg.setHeaderColor(colors.header);
       }
-
       if (typeof tg.setBackgroundColor === "function") {
         tg.setBackgroundColor(colors.background);
       }
-
       if (typeof tg.setBottomBarColor === "function") {
         tg.setBottomBarColor(colors.background);
       }
 
       if (tg.BackButton) {
-        tg.BackButton.offClick(handleBack);
-        if (isHome) {
+        if (typeof tg.BackButton.hide === "function") {
           tg.BackButton.hide();
-        } else {
-          tg.BackButton.onClick(handleBack);
-          tg.BackButton.show();
+        }
+        if (typeof tg.BackButton.offClick === "function") {
+          tg.BackButton.offClick(handleBack);
+        }
+        if (!isHome) {
+          if (typeof tg.BackButton.onClick === "function") {
+            tg.BackButton.onClick(handleBack);
+          }
+          if (typeof tg.BackButton.show === "function") {
+            tg.BackButton.show();
+          }
         }
       }
     }

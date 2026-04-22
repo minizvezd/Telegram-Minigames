@@ -2,8 +2,8 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <title>Pong</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Pong (Drag на левой половине)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 
   <style>
     html, body {
@@ -23,9 +23,6 @@
       display:flex;
       flex-direction:column;
       align-items:center;
-    }
-    body {
-      min-height: 100dvh;
     }
     header {
       width:100%;
@@ -74,7 +71,7 @@
       justify-content:center;
       align-items:center;
       width:100%;
-      max-width:640px;
+      max-width:624px;
       padding:0 12px 20px;
       box-sizing:border-box;
     }
@@ -122,8 +119,8 @@
 </header>
 
 <div class="instructions">
-  Тяни пальцем или мышью по левой части поля, чтобы двигать ракетку.<br>
-  Справа играет ИИ. Матч идёт до 5 очков.
+  Тяни пальцем или мышью по <b>левой половине поля</b>, чтобы двигать ракетку.<br>
+  Правой ракеткой управляет ИИ. Игра заканчивается при 5 очках.
 </div>
 
 <div id="score">0 : 0</div>
@@ -137,30 +134,26 @@
 </div>
 
 <script>
-  document.addEventListener("touchmove", function(e){ e.preventDefault(); }, { passive:false });
-  document.addEventListener("selectstart", function(e){ e.preventDefault(); });
+  document.addEventListener("touchmove", e => e.preventDefault(), { passive:false });
+  document.addEventListener("selectstart", e => e.preventDefault());
 
   const canvas = document.getElementById("pongCanvas");
   const ctx = canvas.getContext("2d");
 
-  const paddleHeight = 76;
-  const paddleWidth = 10;
-  const paddleInset = 8;
-  const ballSize = 8;
-  const maxScore = 5;
-  const aiSpeed = 3.1;
+  let paddleHeight = 70;
+  let paddleWidth = 10;
 
-  let leftPaddleY;
-  let rightPaddleY;
-  let ballX;
-  let ballY;
-  let ballSpeedX;
-  let ballSpeedY;
+  let leftPaddleY, rightPaddleY;
+  let ballX, ballY;
+  let ballSize = 8;
+  let ballSpeedX, ballSpeedY;
+
   let leftScore = 0;
   let rightScore = 0;
   let isGameOver = false;
-  let animationFrameId = null;
-  let activePointerId = null;
+  const maxScore = 5;
+  let animationFrameId;
+  let isPointerDown = false;
 
   function initGame() {
     leftPaddleY = canvas.height / 2 - paddleHeight / 2;
@@ -168,34 +161,14 @@
     leftScore = 0;
     rightScore = 0;
     isGameOver = false;
-    resetBall(Math.random() > 0.5 ? 1 : -1);
-    draw();
+    resetBall();
   }
 
-  function resetBall(direction) {
+  function resetBall() {
     ballX = canvas.width / 2;
     ballY = canvas.height / 2;
-
-    const verticalSeed = (Math.random() * 2 - 1) * 1.6;
-    ballSpeedX = 3.3 * direction;
-    ballSpeedY = verticalSeed || 1.1;
-  }
-
-  function clampPaddles() {
-    leftPaddleY = Math.max(0, Math.min(leftPaddleY, canvas.height - paddleHeight));
-    rightPaddleY = Math.max(0, Math.min(rightPaddleY, canvas.height - paddleHeight));
-  }
-
-  function scorePoint(side) {
-    if (side === "left") {
-      leftScore++;
-      checkScore();
-      if (!isGameOver) resetBall(1);
-    } else {
-      rightScore++;
-      checkScore();
-      if (!isGameOver) resetBall(-1);
-    }
+    ballSpeedX = 2 * (Math.random() > 0.5 ? 1 : -1);
+    ballSpeedY = 2 * (Math.random() > 0.5 ? 1 : -1);
   }
 
   function update() {
@@ -204,54 +177,42 @@
     ballX += ballSpeedX;
     ballY += ballSpeedY;
 
-    if (ballY - ballSize <= 0) {
-      ballY = ballSize;
-      ballSpeedY = Math.abs(ballSpeedY);
-    } else if (ballY + ballSize >= canvas.height) {
-      ballY = canvas.height - ballSize;
-      ballSpeedY = -Math.abs(ballSpeedY);
+    if (ballY - ballSize < 0 || ballY + ballSize > canvas.height) {
+      ballSpeedY = -ballSpeedY;
     }
 
-    const rightCenter = rightPaddleY + paddleHeight / 2;
-    if (rightCenter < ballY - 6) {
-      rightPaddleY += aiSpeed;
-    } else if (rightCenter > ballY + 6) {
-      rightPaddleY -= aiSpeed;
+    if (ballX - ballSize < paddleWidth) {
+      if (ballY > leftPaddleY && ballY < leftPaddleY + paddleHeight) {
+        ballSpeedX = -ballSpeedX;
+        ballSpeedX *= 1.05;
+        ballSpeedY *= 1.05;
+      } else {
+        rightScore++;
+        checkScore();
+        resetBall();
+      }
     }
 
-    clampPaddles();
-
-    const leftPaddleX = paddleInset;
-    const rightPaddleX = canvas.width - paddleInset - paddleWidth;
-
-    if (
-      ballSpeedX < 0 &&
-      ballX - ballSize <= leftPaddleX + paddleWidth &&
-      ballX + ballSize >= leftPaddleX &&
-      ballY + ballSize >= leftPaddleY &&
-      ballY - ballSize <= leftPaddleY + paddleHeight
-    ) {
-      ballX = leftPaddleX + paddleWidth + ballSize;
-      const offset = (ballY - (leftPaddleY + paddleHeight / 2)) / (paddleHeight / 2);
-      ballSpeedX = Math.abs(ballSpeedX) * 1.04;
-      ballSpeedY = offset * 4.2;
-    } else if (ballX + ballSize < 0) {
-      scorePoint("right");
+    const center = rightPaddleY + paddleHeight / 2;
+    if (center < ballY) {
+      rightPaddleY += 3;
+    } else {
+      rightPaddleY -= 3;
     }
 
-    if (
-      ballSpeedX > 0 &&
-      ballX + ballSize >= rightPaddleX &&
-      ballX - ballSize <= rightPaddleX + paddleWidth &&
-      ballY + ballSize >= rightPaddleY &&
-      ballY - ballSize <= rightPaddleY + paddleHeight
-    ) {
-      ballX = rightPaddleX - ballSize;
-      const offset = (ballY - (rightPaddleY + paddleHeight / 2)) / (paddleHeight / 2);
-      ballSpeedX = -Math.abs(ballSpeedX) * 1.04;
-      ballSpeedY = offset * 4.2;
-    } else if (ballX - ballSize > canvas.width) {
-      scorePoint("left");
+    if (rightPaddleY < 0) rightPaddleY = 0;
+    if (rightPaddleY > canvas.height - paddleHeight) rightPaddleY = canvas.height - paddleHeight;
+
+    if (ballX + ballSize > canvas.width - paddleWidth) {
+      if (ballY > rightPaddleY && ballY < rightPaddleY + paddleHeight) {
+        ballSpeedX = -ballSpeedX;
+        ballSpeedX *= 1.05;
+        ballSpeedY *= 1.05;
+      } else {
+        leftScore++;
+        checkScore();
+        resetBall();
+      }
     }
 
     draw();
@@ -261,7 +222,7 @@
   function checkScore() {
     if (leftScore >= maxScore || rightScore >= maxScore) {
       isGameOver = true;
-      document.getElementById("finalScore").textContent = "Счёт: " + leftScore + " : " + rightScore;
+      document.getElementById("finalScore").textContent = `Счёт: ${leftScore} : ${rightScore}`;
       document.getElementById("gameOver").style.display = "block";
     }
   }
@@ -269,30 +230,28 @@
   function draw() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    ctx.fillStyle = "#ffffff";
-    ctx.fillRect(paddleInset, leftPaddleY, paddleWidth, paddleHeight);
-    ctx.fillRect(canvas.width - paddleInset - paddleWidth, rightPaddleY, paddleWidth, paddleHeight);
+    ctx.fillStyle = "#fff";
+    ctx.fillRect(0, leftPaddleY, paddleWidth, paddleHeight);
+    ctx.fillRect(canvas.width - paddleWidth, rightPaddleY, paddleWidth, paddleHeight);
 
     ctx.beginPath();
     ctx.arc(ballX, ballY, ballSize, 0, Math.PI * 2);
     ctx.fill();
 
-    ctx.strokeStyle = "rgba(255,255,255,0.25)";
-    ctx.setLineDash([10, 10]);
+    ctx.strokeStyle = "#555";
     ctx.beginPath();
     ctx.moveTo(canvas.width / 2, 0);
     ctx.lineTo(canvas.width / 2, canvas.height);
     ctx.stroke();
-    ctx.setLineDash([]);
 
-    document.getElementById("score").textContent = leftScore + " : " + rightScore;
+    document.getElementById("score").textContent = `${leftScore} : ${rightScore}`;
   }
 
   function restartGame() {
     document.getElementById("gameOver").style.display = "none";
-    cancelAnimationFrame(animationFrameId);
     initGame();
-    animationFrameId = requestAnimationFrame(update);
+    cancelAnimationFrame(animationFrameId);
+    requestAnimationFrame(update);
   }
 
   function getCanvasPointerPosition(e) {
@@ -307,42 +266,39 @@
   }
 
   function moveLeftPaddle(pointerY) {
-    leftPaddleY = pointerY - paddleHeight / 2;
-    clampPaddles();
+    let newY = pointerY - paddleHeight / 2;
+    if (newY < 0) newY = 0;
+    if (newY > canvas.height - paddleHeight) newY = canvas.height - paddleHeight;
+    leftPaddleY = newY;
   }
 
-  canvas.addEventListener("pointerdown", function(e) {
+  canvas.addEventListener("pointerdown", e => {
     const pos = getCanvasPointerPosition(e);
-
-    if (pos.x <= canvas.width * 0.62) {
-      activePointerId = e.pointerId;
-      if (canvas.setPointerCapture) {
-        canvas.setPointerCapture(e.pointerId);
-      }
+    if (pos.x <= canvas.width / 2) {
+      isPointerDown = true;
+      canvas.setPointerCapture?.(e.pointerId);
       moveLeftPaddle(pos.y);
     }
   });
 
-  canvas.addEventListener("pointermove", function(e) {
-    if (activePointerId !== e.pointerId) return;
+  canvas.addEventListener("pointermove", e => {
+    if (!isPointerDown) return;
     const pos = getCanvasPointerPosition(e);
     moveLeftPaddle(pos.y);
   });
 
-  function releasePointer(e) {
-    if (activePointerId !== e.pointerId) return;
-    activePointerId = null;
-    if (canvas.releasePointerCapture) {
-      canvas.releasePointerCapture(e.pointerId);
-    }
-  }
+  canvas.addEventListener("pointerup", e => {
+    isPointerDown = false;
+    canvas.releasePointerCapture?.(e.pointerId);
+  });
 
-  canvas.addEventListener("pointerup", releasePointer);
-  canvas.addEventListener("pointercancel", releasePointer);
-  canvas.addEventListener("pointerleave", function(e) {
-    if (activePointerId === e.pointerId && e.pressure === 0) {
-      activePointerId = null;
-    }
+  canvas.addEventListener("pointercancel", e => {
+    isPointerDown = false;
+    canvas.releasePointerCapture?.(e.pointerId);
+  });
+
+  canvas.addEventListener("pointerleave", () => {
+    isPointerDown = false;
   });
 
   restartGame();

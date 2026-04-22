@@ -87,13 +87,18 @@ const sharedLayoutStyles = `
     outline-offset: 2px;
   }
 
-  body.tg-ios-fullscreen .back-button {
+  .tg-ios-fullscreen .back-button {
     display: none !important;
   }
 
-  body.tg-ios-fullscreen header {
-    min-height: 92px;
-    padding-top: 18px !important;
+  .tg-ios-fullscreen header {
+    min-height: 124px !important;
+    padding-top: 52px !important;
+    padding-bottom: 14px !important;
+  }
+
+  .tg-ios-fullscreen header h1 {
+    padding: 0 24px !important;
   }
 
   @media (max-width: 600px) {
@@ -115,9 +120,15 @@ const sharedLayoutStyles = `
       font-size: 15px !important;
     }
 
-    body.tg-ios-fullscreen header {
-      min-height: 84px;
-      padding-top: 12px !important;
+    .tg-ios-fullscreen header {
+      min-height: 118px !important;
+      padding-top: 48px !important;
+      padding-bottom: 12px !important;
+    }
+
+    .tg-ios-fullscreen header h1 {
+      padding: 0 20px !important;
+      font-size: 17px !important;
     }
   }
 </style>`;
@@ -126,7 +137,6 @@ const sharedTelegramScript = `
 <script id="shared-telegram-safe-area-script">
   (function () {
     const root = document.documentElement;
-    const body = document.body;
     const tg = window.Telegram && window.Telegram.WebApp;
     const isiOS = /iP(ad|hone|od)/.test(navigator.userAgent || "");
 
@@ -153,10 +163,7 @@ const sharedTelegramScript = `
       root.style.setProperty("--tg-safe-bottom", px(Math.max(content.bottom || 0, safe.bottom || 0)));
       root.style.setProperty("--tg-safe-left", px(Math.max(content.left || 0, safe.left || 0)));
       root.style.setProperty("--tg-overlay-top", px(overlayTop));
-
-      if (body) {
-        body.classList.toggle("tg-ios-fullscreen", overlayTop > 0);
-      }
+      root.classList.toggle("tg-ios-fullscreen", overlayTop > 0);
     }
 
     if (!tg) return;

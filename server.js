@@ -138,6 +138,17 @@ const sharedLayoutMarkup = `
     }
 
     const root = document.documentElement;
+    const pathname = window.location.pathname || "/";
+    const isHome = pathname === "/" || pathname === "/index.html";
+    const pageColors = {
+      "/": { header: "#0b0e33", background: "#0b0e33" },
+      "/index.html": { header: "#0b0e33", background: "#0b0e33" },
+      "/2048.html": { header: "#4CAF50", background: "#faf8ef" },
+      "/minesweeper.html": { header: "#4CAF50", background: "#d3d3d3" },
+      "/snake.html": { header: "#4CAF50", background: "#222222" },
+      "/tetris.html": { header: "#4CAF50", background: "#222222" },
+      "/pong.html": { header: "#4CAF50", background: "#000000" }
+    };
 
     function px(value, fallback) {
       if (typeof value === "number" && isFinite(value) && value >= 0) {
@@ -146,14 +157,46 @@ const sharedLayoutMarkup = `
       return fallback;
     }
 
+    function handleBack() {
+      if (window.history.length > 1) {
+        window.history.back();
+        return;
+      }
+      window.location.href = "/";
+    }
+
     function applyViewport() {
       const safe = tg.contentSafeAreaInset || tg.safeAreaInset || {};
+      const colors = pageColors[pathname] || { header: "#4CAF50", background: "#222222" };
+
       root.classList.add("tg-webapp");
       root.style.setProperty("--tg-viewport-height", px(tg.viewportHeight, "100vh"));
       root.style.setProperty("--tg-content-safe-area-inset-top", px(safe.top, "env(safe-area-inset-top, 0px)"));
       root.style.setProperty("--tg-content-safe-area-inset-right", px(safe.right, "env(safe-area-inset-right, 0px)"));
       root.style.setProperty("--tg-content-safe-area-inset-bottom", px(safe.bottom, "env(safe-area-inset-bottom, 0px)"));
       root.style.setProperty("--tg-content-safe-area-inset-left", px(safe.left, "env(safe-area-inset-left, 0px)"));
+
+      if (typeof tg.setHeaderColor === "function") {
+        tg.setHeaderColor(colors.header);
+      }
+
+      if (typeof tg.setBackgroundColor === "function") {
+        tg.setBackgroundColor(colors.background);
+      }
+
+      if (typeof tg.setBottomBarColor === "function") {
+        tg.setBottomBarColor(colors.background);
+      }
+
+      if (tg.BackButton) {
+        tg.BackButton.offClick(handleBack);
+        if (isHome) {
+          tg.BackButton.hide();
+        } else {
+          tg.BackButton.onClick(handleBack);
+          tg.BackButton.show();
+        }
+      }
     }
 
     tg.ready();

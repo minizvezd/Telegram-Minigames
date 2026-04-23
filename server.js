@@ -354,16 +354,38 @@ const sharedLayoutMarkup = `
       window.location.href = "/";
     }
 
+    function getWindowHeight() {
+      const visualHeight = window.visualViewport && typeof window.visualViewport.height === "number"
+        ? window.visualViewport.height
+        : 0;
+      return Math.max(window.innerHeight || 0, document.documentElement.clientHeight || 0, visualHeight || 0);
+    }
+
+    function isTelegramFullscreen(safe) {
+      if (tg.isFullscreen === true) return true;
+
+      const windowHeight = getWindowHeight();
+      const viewportHeight = Number(tg.viewportHeight) || 0;
+      const stableHeight = Number(tg.viewportStableHeight) || 0;
+      const safeTop = Number(safe.top) || 0;
+
+      const closeToWindow = (value) => value > 0 && Math.abs(windowHeight - value) <= 10;
+      const viewportLooksFullscreen = closeToWindow(viewportHeight) || closeToWindow(stableHeight);
+      const overlayLooksFullscreen = safeTop >= 28 && (closeToWindow(viewportHeight) || closeToWindow(stableHeight) || windowHeight >= 700);
+
+      return viewportLooksFullscreen || overlayLooksFullscreen;
+    }
+
     function applyLayout() {
       const safe = tg.contentSafeAreaInset || tg.safeAreaInset || {};
-      const isFullscreen = tg.isFullscreen === true;
+      const isFullscreen = !isHome && isTelegramFullscreen(safe);
 
       root.style.setProperty("--tg-viewport-height", px(tg.viewportHeight, "100vh"));
       root.style.setProperty("--tg-safe-top", px(safe.top, "env(safe-area-inset-top, 0px)"));
       root.style.setProperty("--tg-safe-right", px(safe.right, "env(safe-area-inset-right, 0px)"));
       root.style.setProperty("--tg-safe-bottom", px(safe.bottom, "env(safe-area-inset-bottom, 0px)"));
       root.style.setProperty("--tg-safe-left", px(safe.left, "env(safe-area-inset-left, 0px)"));
-      root.classList.toggle("tg-fullscreen", !isHome && isFullscreen);
+      root.classList.toggle("tg-fullscreen", isFullscreen);
 
       if (typeof tg.setHeaderColor === "function") tg.setHeaderColor(isHome ? "#0b0e33" : "#4CAF50");
       if (typeof tg.setBackgroundColor === "function") tg.setBackgroundColor(isHome ? "#0b0e33" : "#1d1e22");
@@ -371,7 +393,7 @@ const sharedLayoutMarkup = `
 
       if (tg.BackButton) {
         if (typeof tg.BackButton.offClick === "function") tg.BackButton.offClick(handleBack);
-        if (!isHome && isFullscreen) {
+        if (isFullscreen) {
           if (typeof tg.BackButton.onClick === "function") tg.BackButton.onClick(handleBack);
           if (typeof tg.BackButton.show === "function") tg.BackButton.show();
         } else if (typeof tg.BackButton.hide === "function") {
@@ -389,6 +411,7 @@ const sharedLayoutMarkup = `
     applyLayout();
     setTimeout(applyLayout, 120);
     setTimeout(applyLayout, 400);
+    setTimeout(applyLayout, 900);
 
     if (tg.onEvent) {
       tg.onEvent("viewportChanged", applyLayout);
@@ -398,6 +421,8 @@ const sharedLayoutMarkup = `
     }
 
     window.addEventListener("resize", applyLayout, { passive: true });
+    window.addEventListener("orientationchange", applyLayout, { passive: true });
+    document.addEventListener("visibilitychange", applyLayout, { passive: true });
   })();
 </script>`;
 

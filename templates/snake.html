@@ -211,20 +211,20 @@
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
 
-    const gridSize = 25;
+    const gridSize = 40;
     const canvasSize = canvas.width;
     const gridCount = canvasSize / gridSize;
 
-    let snake = [{ x: 8, y: 8 }];
+    let snake = [{ x: 6, y: 6 }];
     let direction = { x: 1, y: 0 };
-    let food = { x: 5, y: 5 };
+    let food = { x: 4, y: 4 };
     let score = 0;
     let gameInterval = null;
     let isGameOver = false;
 
     function drawGrid() {
       ctx.save();
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.07)";
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.075)";
       ctx.lineWidth = 1;
       ctx.beginPath();
 
@@ -271,9 +271,9 @@
 
       snake.forEach((segment, index) => {
         const isTail = snake.length > 1 && index === snake.length - 1;
-        const pad = isTail ? 5 : 3;
+        const pad = isTail ? 8 : 5;
         const size = gridSize - pad * 2;
-        const radius = isTail ? 6 : 8;
+        const radius = isTail ? 8 : 12;
 
         drawRoundedRect(
           segment.x * gridSize + pad,
@@ -348,7 +348,7 @@
     }
 
     function restartGame() {
-      snake = [{ x: 8, y: 8 }];
+      snake = [{ x: 6, y: 6 }];
       direction = { x: 1, y: 0 };
       score = 0;
       document.getElementById("scoreValue").textContent = score;

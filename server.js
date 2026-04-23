@@ -347,28 +347,11 @@ const sharedLayoutMarkup = `
     }
 
     function handleBack() {
-      window.location.replace("/");
-    }
-
-    function bindReplaceNavigation() {
-      if (window.__tgReplaceNavigationBound) return;
-      window.__tgReplaceNavigationBound = true;
-
-      document.addEventListener("click", (event) => {
-        const link = event.target.closest("a");
-        if (!link) return;
-
-        if (isHome && link.classList.contains("game-link")) {
-          event.preventDefault();
-          window.location.replace(link.href);
-          return;
-        }
-
-        if (!isHome && link.classList.contains("back-button")) {
-          event.preventDefault();
-          handleBack();
-        }
-      }, true);
+      if (window.history.length > 1) {
+        window.history.back();
+        return;
+      }
+      window.location.href = "/";
     }
 
     function applyLayout() {
@@ -398,8 +381,6 @@ const sharedLayoutMarkup = `
     }
 
     tg.ready();
-    bindReplaceNavigation();
-
     if (!isHome) {
       tg.expand();
       if (typeof tg.disableVerticalSwipes === "function") tg.disableVerticalSwipes();

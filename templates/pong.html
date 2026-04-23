@@ -198,25 +198,37 @@
   let ballSize = 8;
   let ballSpeedX, ballSpeedY;
 
+  // === НАСТРОЙКА ИГРЫ: меняй значения здесь ===
+  const maxScore = 5;
+  const serveCountdownStepMs = 260; // скорость отсчёта 3-2-1
+  const ballBaseSpeed = 2.7; // стартовая скорость мяча
+  const ballSpeedIncrease = 1.055; // ускорение после каждого отскока
+  const maxBallSpeed = 7.2; // максимальная скорость мяча
+  const maxBounceAngle = Math.PI / 3; // максимальный угол отскока (60°)
+  const aiBaseSpeed = 1.7; // скорость бота, когда мяч не летит к нему
+  const aiTrackSpeed = 2.55; // скорость бота, когда мяч летит к нему
+  const aiReactionMs = 125; // реакция бота: больше = слабее
+  const aiMistakePx = 22; // погрешность бота: больше = слабее
+  const aiDeadZone = 7;
+
   let leftScore = 0;
   let rightScore = 0;
   let isGameOver = false;
   let isRoundPaused = false;
-  const maxScore = 5;
-  const goalPauseMs = 850;
-  const ballBaseSpeed = 2.2;
-  const ballSpeedIncrease = 1.04;
-  const maxBallSpeed = 6.2;
-  const aiBaseSpeed = 1.7;
-  const aiTrackSpeed = 2.55;
-  const aiReactionMs = 125;
-  const aiMistakePx = 22;
-  const aiDeadZone = 7;
+  let countdownValue = "";
   let aiTargetY = 0;
   let aiLastRetargetAt = 0;
-  let roundResumeTimer = null;
+  let serveDirection = 1;
+  let roundTimers = [];
   let animationFrameId;
   let isPointerDown = false;
+
+  function clearRoundTimers() {
+    for (const timerId of roundTimers) {
+      clearTimeout(timerId);
+    }
+    roundTimers = [];
+  }
 
   function initGame() {
     leftPaddleY = canvas.height / 2 - paddleHeight / 2;
@@ -225,11 +237,11 @@
     rightScore = 0;
     isGameOver = false;
     isRoundPaused = false;
-    clearTimeout(roundResumeTimer);
-    roundResumeTimer = null;
+    countdownValue = "";
     aiTargetY = canvas.height / 2 - paddleHeight / 2;
     aiLastRetargetAt = 0;
-    resetBall(Math.random() > 0.5 ? 1 : -1);
+    clearRoundTimers();
+    startServeCountdown(Math.random() > 0.5 ? 1 : -1);
   }
 
   function placeBallAtCenter() {
@@ -243,17 +255,52 @@
     ballX = canvas.width / 2;
     ballY = canvas.height / 2;
 
-    const angle = Math.random() * 1.2 - 0.6;
+    const angle = Math.random() * 1.1 - 0.55;
     ballSpeedX = ballBaseSpeed * direction;
     ballSpeedY = ballBaseSpeed * angle;
   }
 
-  function clampBallSpeed() {
-    if (Math.abs(ballSpeedX) > maxBallSpeed) {
-      ballSpeedX = Math.sign(ballSpeedX) * maxBallSpeed;
-    }
-    if (Math.abs(ballSpeedY) > maxBallSpeed) {
-      ballSpeedY = Math.sign(ballSpeedY) * maxBallSpeed;
+  function startServeCountdown(direction = (Math.random() > 0.5 ? 1 : -1)) {
+    serveDirection = direction;
+    isRoundPaused = true;
+    countdownValue = 3;
+    placeBallAtCenter();
+    rightPaddleY = canvas.height / 2 - paddleHeight / 2;
+    aiTargetY = rightPaddleY;
+    aiLastRetargetAt = 0;
+
+    clearRoundTimers();
+
+    roundTimers.push(setTimeout(() => {
+      countdownValue = 2;
+    }, serveCountdownStepMs));
+
+    roundTimers.push(setTimeout(() => {
+      countdownValue = 1;
+    }, serveCountdownStepMs * 2));
+
+    roundTimers.push(setTimeout(() => {
+      countdownValue = "";
+      isRoundPaused = false;
+      resetBall(serveDirection);
+    }, serveCountdownStepMs * 3));
+  }
+
+  function handlePaddleBounce(paddleY, direction) {
+    const paddleCenterY = paddleY + paddleHeight / 2;
+    const relativeImpact = (ballY - paddleCenterY) / (paddleHeight / 2);
+    const clampedImpact = Math.max(-1, Math.min(1, relativeImpact));
+    const bounceAngle = clampedImpact * maxBounceAngle;
+    const currentSpeed = Math.hypot(ballSpeedX, ballSpeedY);
+    const nextSpeed = Math.min(maxBallSpeed, Math.max(ballBaseSpeed, currentSpeed * ballSpeedIncrease));
+
+    ballSpeedX = Math.cos(bounceAngle) * nextSpeed * direction;
+    ballSpeedY = Math.sin(bounceAngle) * nextSpeed;
+
+    if (direction > 0) {
+      ballX = paddleWidth + ballSize + 0.5;
+    } else {
+      ballX = canvas.width - paddleWidth - ballSize - 0.5;
     }
   }
 
@@ -267,16 +314,7 @@
     checkScore();
     if (isGameOver) return;
 
-    isRoundPaused = true;
-    placeBallAtCenter();
-    aiTargetY = canvas.height / 2 - paddleHeight / 2;
-
-    clearTimeout(roundResumeTimer);
-    roundResumeTimer = setTimeout(() => {
-      isRoundPaused = false;
-      aiLastRetargetAt = 0;
-      resetBall(Math.random() > 0.5 ? 1 : -1);
-    }, goalPauseMs);
+    startServeCountdown(Math.random() > 0.5 ? 1 : -1);
   }
 
   function updateAi() {
@@ -317,26 +355,26 @@
       }
 
       if (ballX - ballSize < paddleWidth) {
-        if (ballY > leftPaddleY && ballY < leftPaddleY + paddleHeight) {
-          ballX = paddleWidth + ballSize;
-          ballSpeedX = Math.abs(ballSpeedX) * ballSpeedIncrease;
-          ballSpeedY *= ballSpeedIncrease;
-          clampBallSpeed();
+        if (ballY + ballSize > leftPaddleY && ballY - ballSize < leftPaddleY + paddleHeight) {
+          handlePaddleBounce(leftPaddleY, 1);
         } else {
           handleGoal("right");
+          draw();
+          animationFrameId = requestAnimationFrame(update);
+          return;
         }
       }
 
       updateAi();
 
       if (ballX + ballSize > canvas.width - paddleWidth) {
-        if (ballY > rightPaddleY && ballY < rightPaddleY + paddleHeight) {
-          ballX = canvas.width - paddleWidth - ballSize;
-          ballSpeedX = -Math.abs(ballSpeedX) * ballSpeedIncrease;
-          ballSpeedY *= ballSpeedIncrease;
-          clampBallSpeed();
+        if (ballY + ballSize > rightPaddleY && ballY - ballSize < rightPaddleY + paddleHeight) {
+          handlePaddleBounce(rightPaddleY, -1);
         } else {
           handleGoal("left");
+          draw();
+          animationFrameId = requestAnimationFrame(update);
+          return;
         }
       }
     }
@@ -348,6 +386,9 @@
   function checkScore() {
     if (leftScore >= maxScore || rightScore >= maxScore) {
       isGameOver = true;
+      isRoundPaused = false;
+      countdownValue = "";
+      clearRoundTimers();
       document.getElementById("finalScore").textContent = `Счёт: ${leftScore} : ${rightScore}`;
       document.getElementById("gameOver").style.display = "block";
     }
@@ -371,13 +412,13 @@
     ctx.stroke();
 
     if (isRoundPaused && !isGameOver) {
-      ctx.fillStyle = "rgba(0, 0, 0, 0.45)";
+      ctx.fillStyle = "rgba(0, 0, 0, 0.4)";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       ctx.fillStyle = "#fff";
-      ctx.font = "bold 26px sans-serif";
       ctx.textAlign = "center";
-      ctx.fillText("Следующая подача...", canvas.width / 2, canvas.height / 2);
+      ctx.font = "bold 72px sans-serif";
+      ctx.fillText(String(countdownValue), canvas.width / 2, canvas.height / 2 + 24);
     }
 
     document.getElementById("score").textContent = `${leftScore} : ${rightScore}`;
@@ -385,10 +426,9 @@
 
   function restartGame() {
     document.getElementById("gameOver").style.display = "none";
-    clearTimeout(roundResumeTimer);
-    roundResumeTimer = null;
-    initGame();
+    clearRoundTimers();
     cancelAnimationFrame(animationFrameId);
+    initGame();
     animationFrameId = requestAnimationFrame(update);
   }
 

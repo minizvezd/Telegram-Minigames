@@ -145,6 +145,15 @@
       min-width: 220px;
     }
 
+    #gameOver h2 {
+      margin: 0 0 12px;
+    }
+
+    #winMessage {
+      font-size: 22px;
+      line-height: 1.25;
+    }
+
     #gameOver button {
       margin-top: 10px;
       padding: 10px 16px;
@@ -178,6 +187,7 @@
 <div id="pongContainer">
   <canvas id="pongCanvas" width="600" height="400"></canvas>
   <div id="gameOver">
+    <h2 id="winMessage"></h2>
     <h2 id="finalScore">Счёт:</h2>
     <button onclick="restartGame()">Играть снова</button>
   </div>
@@ -385,10 +395,15 @@
 
   function checkScore() {
     if (leftScore >= maxScore || rightScore >= maxScore) {
+      const playerWon = leftScore >= maxScore;
+      const winMessage = document.getElementById("winMessage");
+
       isGameOver = true;
       isRoundPaused = false;
       countdownValue = "";
       clearRoundTimers();
+      winMessage.textContent = playerWon ? "Вы выиграли, поздравляем!!" : "";
+      winMessage.style.display = playerWon ? "block" : "none";
       document.getElementById("finalScore").textContent = `Счёт: ${leftScore} : ${rightScore}`;
       document.getElementById("gameOver").style.display = "block";
     }

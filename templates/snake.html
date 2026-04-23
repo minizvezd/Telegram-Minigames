@@ -306,31 +306,75 @@
       drawFood();
     }
 
-    document.addEventListener("keydown", (e) => {
+    function handleKeyDown(e) {
       if (isGameOver) return;
-      switch (e.key) {
+
+      let action = null;
+      switch (e.code) {
         case "ArrowUp":
-        case "w":
-        case "W":
-          if (direction.y === 0) direction = { x: 0, y: -1 };
+        case "KeyW":
+          action = "up";
           break;
         case "ArrowDown":
-        case "s":
-        case "S":
-          if (direction.y === 0) direction = { x: 0, y: 1 };
+        case "KeyS":
+          action = "down";
           break;
         case "ArrowLeft":
-        case "a":
-        case "A":
-          if (direction.x === 0) direction = { x: -1, y: 0 };
+        case "KeyA":
+          action = "left";
           break;
         case "ArrowRight":
-        case "d":
-        case "D":
+        case "KeyD":
+          action = "right";
+          break;
+      }
+
+      if (!action) {
+        switch (e.key) {
+          case "ArrowUp":
+          case "w":
+          case "W":
+            action = "up";
+            break;
+          case "ArrowDown":
+          case "s":
+          case "S":
+            action = "down";
+            break;
+          case "ArrowLeft":
+          case "a":
+          case "A":
+            action = "left";
+            break;
+          case "ArrowRight":
+          case "d":
+          case "D":
+            action = "right";
+            break;
+        }
+      }
+
+      if (!action) return;
+      e.preventDefault();
+
+      switch (action) {
+        case "up":
+          if (direction.y === 0) direction = { x: 0, y: -1 };
+          break;
+        case "down":
+          if (direction.y === 0) direction = { x: 0, y: 1 };
+          break;
+        case "left":
+          if (direction.x === 0) direction = { x: -1, y: 0 };
+          break;
+        case "right":
           if (direction.x === 0) direction = { x: 1, y: 0 };
           break;
       }
-    });
+    }
+
+    window.addEventListener("keydown", handleKeyDown, { passive:false });
+    document.addEventListener("keydown", handleKeyDown, { passive:false });
 
     let touchStartX = 0;
     let touchStartY = 0;

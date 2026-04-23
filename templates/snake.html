@@ -222,10 +222,66 @@
     let gameInterval = null;
     let isGameOver = false;
 
+    function drawGrid() {
+      ctx.save();
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.055)";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+
+      for (let i = 1; i < gridCount; i++) {
+        const pos = i * gridSize + 0.5;
+        ctx.moveTo(pos, 0);
+        ctx.lineTo(pos, canvasSize);
+        ctx.moveTo(0, pos);
+        ctx.lineTo(canvasSize, pos);
+      }
+
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawRoundedRect(x, y, width, height, radius) {
+      ctx.beginPath();
+
+      if (typeof ctx.roundRect === "function") {
+        ctx.roundRect(x, y, width, height, radius);
+      } else {
+        const r = Math.min(radius, width / 2, height / 2);
+        ctx.moveTo(x + r, y);
+        ctx.lineTo(x + width - r, y);
+        ctx.quadraticCurveTo(x + width, y, x + width, y + r);
+        ctx.lineTo(x + width, y + height - r);
+        ctx.quadraticCurveTo(x + width, y + height, x + width - r, y + height);
+        ctx.lineTo(x + r, y + height);
+        ctx.quadraticCurveTo(x, y + height, x, y + height - r);
+        ctx.lineTo(x, y + r);
+        ctx.quadraticCurveTo(x, y, x + r, y);
+      }
+
+      ctx.fill();
+    }
+
+    function clearBoard() {
+      ctx.clearRect(0, 0, canvasSize, canvasSize);
+      drawGrid();
+    }
+
     function drawSnake() {
       ctx.fillStyle = "#0f0";
-      snake.forEach(segment => {
-        ctx.fillRect(segment.x * gridSize, segment.y * gridSize, gridSize, gridSize);
+
+      snake.forEach((segment, index) => {
+        const isTail = snake.length > 1 && index === snake.length - 1;
+        const pad = isTail ? 4 : 2;
+        const size = gridSize - pad * 2;
+        const radius = isTail ? 5 : 6;
+
+        drawRoundedRect(
+          segment.x * gridSize + pad,
+          segment.y * gridSize + pad,
+          size,
+          size,
+          radius
+        );
       });
     }
 
@@ -267,7 +323,7 @@
         snake.pop();
       }
 
-      ctx.clearRect(0, 0, canvasSize, canvasSize);
+      clearBoard();
       drawSnake();
       drawFood();
     }
@@ -301,7 +357,7 @@
       placeFood();
       clearInterval(gameInterval);
       gameInterval = setInterval(update, 200);
-      ctx.clearRect(0, 0, canvasSize, canvasSize);
+      clearBoard();
       drawSnake();
       drawFood();
     }

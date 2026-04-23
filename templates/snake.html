@@ -5,114 +5,177 @@
   <title>Змейка</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
   <style>
+    :root {
+      --game-bg: #000;
+      --panel-bg: #111;
+      --panel-muted: #333;
+      --panel-border: #ccc;
+      --accent: #4CAF50;
+      --text: #fff;
+      --button-bg: #333;
+      --button-hover: #555;
+      --danger: #f66;
+      --danger-hover: #d55;
+    }
+
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: var(--game-bg);
+      color: var(--text);
+      font-family: sans-serif;
+      overscroll-behavior: none;
+      -webkit-overflow-scrolling: none;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+      touch-action: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
     body {
-      margin:0;
+      box-sizing: border-box;
+      min-height: 100dvh;
+      width: 100%;
       padding-top: calc(max(env(safe-area-inset-top, 0px), var(--tg-safe-top, 0px)) + var(--tg-overlay-top, 0px)) !important;
       padding-right: max(env(safe-area-inset-right, 0px), var(--tg-safe-right, 0px)) !important;
       padding-bottom: max(env(safe-area-inset-bottom, 0px), var(--tg-safe-bottom, 0px)) !important;
       padding-left: max(env(safe-area-inset-left, 0px), var(--tg-safe-left, 0px)) !important;
-      box-sizing:border-box;
-      min-height:100dvh;
-      width:100%;
-      background:#222;
-      color:#fff;
-      font-family:sans-serif;
-      overscroll-behavior:none;
-      -webkit-overflow-scrolling:none;
-      -webkit-touch-callout:none;
-      -webkit-user-select:none;
-      -moz-user-select:none;
-      -ms-user-select:none;
-      user-select:none;
-      touch-action:none;
-      display:flex;
-      flex-direction:column;
-      align-items:center;
     }
+
+    * {
+      box-sizing: border-box;
+    }
+
     header {
-      width:100%;
-      background:#4CAF50;
-      color:#fff;
-      text-align:center;
-      padding:10px;
-      position:relative;
-      box-sizing:border-box;
+      width: 100%;
+      min-height: 56px;
+      background: var(--accent);
+      color: var(--text);
+      text-align: center;
+      padding: 10px 56px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
+
     .back-button {
-      position:absolute;
-      left:10px;
-      top:10px;
-      text-decoration:none;
-      background:#333;
-      color:#fff;
-      padding:6px 12px;
-      border-radius:4px;
-      font-size:14px;
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 34px;
+      text-decoration: none;
+      background: var(--button-bg);
+      color: var(--text);
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-size: 14px;
+      line-height: 1;
     }
-    .back-button:hover{
-      background:#555;
+
+    .back-button:hover {
+      background: var(--button-hover);
     }
-    h1{
-      margin:0;
-      font-size:20px;
+
+    h1 {
+      margin: 0;
+      font-size: 20px;
     }
-    .instructions{
-      margin:10px;
-      font-size:14px;
-      background:#333;
-      padding:6px 10px;
-      border-radius:4px;
-      line-height:1.4;
-      max-width:500px;
-      text-align:center;
+
+    .instructions {
+      margin: 10px 12px;
+      font-size: 14px;
+      background: var(--panel-muted);
+      color: var(--text);
+      padding: 8px 12px;
+      border-radius: 4px;
+      line-height: 1.4;
+      width: min(100% - 24px, 500px);
+      max-width: 500px;
+      text-align: center;
     }
-    #score{
-      margin:8px 0;
-      font-size:20px;
+
+    #score {
+      margin: 8px 12px 10px;
+      font-size: 18px;
+      font-weight: 700;
+      text-align: center;
     }
-    #gameContainer{
-      position:relative;
-      margin:10px auto 20px;
-      display:flex;
-      justify-content:center;
-      width:100%;
-      max-width:420px;
+
+    #gameContainer {
+      position: relative;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+      padding: 0 12px 20px;
     }
+
+    #gameWrap {
+      position: relative;
+      padding: 10px;
+      background: var(--panel-bg);
+      border: 2px solid var(--panel-border);
+      border-radius: 8px;
+    }
+
     canvas {
-      background:#111;
-      border:2px solid #555;
-      display:block;
-      max-width:100%;
-      height:auto;
+      background: #111;
+      border: 2px solid #555;
+      display: block;
+      width: 400px;
+      max-width: 100%;
+      height: auto;
     }
+
     #gameOver {
-      display:none;
-      position:absolute;
-      top:50%;
-      left:50%;
-      transform:translate(-50%, -50%);
-      background:rgba(0, 0, 0, 0.85);
-      padding:20px;
-      border-radius:10px;
-      text-align:center;
-      z-index:2;
+      display: none;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(0, 0, 0, 0.82);
+      padding: 20px;
+      border-radius: 8px;
+      text-align: center;
+      z-index: 2;
+      min-width: 220px;
     }
+
     #gameOver button {
-      background:#f66;
-      border:none;
-      color:#fff;
-      padding:10px 20px;
-      font-size:16px;
-      cursor:pointer;
-      border-radius:5px;
+      margin-top: 10px;
+      background: var(--danger);
+      border: none;
+      color: var(--text);
+      padding: 10px 16px;
+      font-size: 16px;
+      cursor: pointer;
+      border-radius: 5px;
     }
+
     #gameOver button:hover {
-      background:#d55;
+      background: var(--danger-hover);
     }
-    @media(max-width:600px){
+
+    @media (max-width: 600px) {
+      h1 {
+        font-size: 18px;
+      }
+
+      #score {
+        font-size: 17px;
+      }
+
       canvas {
-        width:300px;
-        height:300px;
+        width: 300px;
       }
     }
   </style>
@@ -124,18 +187,20 @@
   </header>
 
   <div class="instructions">
-    Управление: стрелки или W/A/S/D. На телефоне — свайпы.<br>
-    Цель: съесть как можно больше яблок. Столкновение со стеной или хвостом — проигрыш.
+    Управление: стрелки или W/A/S/D, на телефоне - свайпы.<br>
+    Цель: съесть как можно больше яблок. Столкновение со стеной или хвостом - проигрыш.
   </div>
 
   <div id="score">Очки: <span id="scoreValue">0</span></div>
 
   <div id="gameContainer">
-    <canvas id="gameCanvas" width="400" height="400"></canvas>
-    <div id="gameOver">
-      <h2>Игра окончена!</h2>
-      <p>Счёт: <span id="finalScore">0</span></p>
-      <button onclick="restartGame()">Играть снова</button>
+    <div id="gameWrap">
+      <canvas id="gameCanvas" width="400" height="400"></canvas>
+      <div id="gameOver">
+        <h2>Игра окончена!</h2>
+        <p>Счёт: <span id="finalScore">0</span></p>
+        <button onclick="restartGame()">Играть снова</button>
+      </div>
     </div>
   </div>
 

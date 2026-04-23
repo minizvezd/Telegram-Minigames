@@ -220,6 +220,8 @@
   const aiReactionMs = 125; // реакция бота: больше = слабее
   const aiMistakePx = 22; // погрешность бота: больше = слабее
   const aiDeadZone = 7;
+  const mobileQuery = window.matchMedia("(pointer: coarse), (max-width: 600px)");
+  const targetFrameMs = 1000 / 60;
 
   let leftScore = 0;
   let rightScore = 0;
@@ -232,6 +234,22 @@
   let roundTimers = [];
   let animationFrameId;
   let isPointerDown = false;
+  let lastFrameTime = 0;
+
+  function getMobileSpeedMultiplier() {
+    return mobileQuery.matches ? 1.28 : 1;
+  }
+
+  function getFrameScale(time) {
+    if (!lastFrameTime) {
+      lastFrameTime = time;
+      return 1;
+    }
+
+    const delta = Math.min(time - lastFrameTime, 50);
+    lastFrameTime = time;
+    return delta / targetFrameMs;
+  }
 
   function clearRoundTimers() {
     for (const timerId of roundTimers) {
@@ -250,6 +268,7 @@
     countdownValue = "";
     aiTargetY = canvas.height / 2 - paddleHeight / 2;
     aiLastRetargetAt = 0;
+    lastFrameTime = 0;
     clearRoundTimers();
     startServeCountdown(Math.random() > 0.5 ? 1 : -1);
   }
@@ -265,9 +284,10 @@
     ballX = canvas.width / 2;
     ballY = canvas.height / 2;
 
+    const speedMultiplier = getMobileSpeedMultiplier();
     const angle = Math.random() * 1.1 - 0.55;
-    ballSpeedX = ballBaseSpeed * direction;
-    ballSpeedY = ballBaseSpeed * angle;
+    ballSpeedX = ballBaseSpeed * speedMultiplier * direction;
+    ballSpeedY = ballBaseSpeed * speedMultiplier * angle;
   }
 
   function startServeCountdown(direction = (Math.random() > 0.5 ? 1 : -1)) {
@@ -297,12 +317,13 @@
   }
 
   function handlePaddleBounce(paddleY, direction) {
+    const speedMultiplier = getMobileSpeedMultiplier();
     const paddleCenterY = paddleY + paddleHeight / 2;
     const relativeImpact = (ballY - paddleCenterY) / (paddleHeight / 2);
     const clampedImpact = Math.max(-1, Math.min(1, relativeImpact));
     const bounceAngle = clampedImpact * maxBounceAngle;
     const currentSpeed = Math.hypot(ballSpeedX, ballSpeedY);
-    const nextSpeed = Math.min(maxBallSpeed, Math.max(ballBaseSpeed, currentSpeed * ballSpeedIncrease));
+    const nextSpeed = Math.min(maxBallSpeed * speedMultiplier, Math.max(ballBaseSpeed * speedMultiplier, currentSpeed * ballSpeedIncrease));
 
     ballSpeedX = Math.cos(bounceAngle) * nextSpeed * direction;
     ballSpeedY = Math.sin(bounceAngle) * nextSpeed;
@@ -327,8 +348,9 @@
     startServeCountdown(Math.random() > 0.5 ? 1 : -1);
   }
 
-  function updateAi() {
+  function updateAi(frameScale) {
     const now = performance.now();
+    const speedMultiplier = getMobileSpeedMultiplier();
     const ballGoingToAi = ballSpeedX > 0 && ballX > canvas.width * 0.35;
     const idleY = canvas.height / 2 - paddleHeight / 2;
     const targetBaseY = ballGoingToAi ? ballY - paddleHeight / 2 : idleY;
@@ -342,7 +364,7 @@
     if (aiTargetY < 0) aiTargetY = 0;
     if (aiTargetY > canvas.height - paddleHeight) aiTargetY = canvas.height - paddleHeight;
 
-    const step = ballGoingToAi ? aiTrackSpeed : aiBaseSpeed;
+    const step = (ballGoingToAi ? aiTrackSpeed : aiBaseSpeed) * speedMultiplier * frameScale;
     const delta = aiTargetY - rightPaddleY;
 
     if (Math.abs(delta) > aiDeadZone) {
@@ -353,12 +375,14 @@
     if (rightPaddleY > canvas.height - paddleHeight) rightPaddleY = canvas.height - paddleHeight;
   }
 
-  function update() {
+  function update(time = 0) {
     if (isGameOver) return;
 
+    const frameScale = getFrameScale(time);
+
     if (!isRoundPaused) {
-      ballX += ballSpeedX;
-      ballY += ballSpeedY;
+      ballX += ballSpeedX * frameScale;
+      ballY += ballSpeedY * frameScale;
 
       if (ballY - ballSize < 0 || ballY + ballSize > canvas.height) {
         ballSpeedY = -ballSpeedY;
@@ -375,7 +399,7 @@
         }
       }
 
-      updateAi();
+      updateAi(frameScale);
 
       if (ballX + ballSize > canvas.width - paddleWidth) {
         if (ballY + ballSize > rightPaddleY && ballY - ballSize < rightPaddleY + paddleHeight) {

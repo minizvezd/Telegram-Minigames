@@ -403,5 +403,50 @@
     restartGame();
   </script>
 
+  <script>
+    (function setupFullscreenBackFix() {
+      const backButton = document.querySelector('.back-button');
+      const tg = window.Telegram && window.Telegram.WebApp;
+      if (!backButton || !tg) return;
+
+      function handleBack() {
+        if (window.history.length > 1) {
+          window.history.back();
+        } else {
+          window.location.href = '/';
+        }
+      }
+
+      function apply() {
+        const safe = tg.contentSafeAreaInset || tg.safeAreaInset || {};
+        const isFullscreen = tg.isFullscreen === true || (Number(safe.top) || 0) >= 24;
+        backButton.style.display = isFullscreen ? 'none' : 'inline-flex';
+
+        if (!tg.BackButton) return;
+        if (typeof tg.BackButton.offClick === 'function') tg.BackButton.offClick(handleBack);
+        if (isFullscreen) {
+          if (typeof tg.BackButton.onClick === 'function') tg.BackButton.onClick(handleBack);
+          if (typeof tg.BackButton.show === 'function') tg.BackButton.show();
+        } else if (typeof tg.BackButton.hide === 'function') {
+          tg.BackButton.hide();
+        }
+      }
+
+      tg.ready();
+      apply();
+      setTimeout(apply, 150);
+      setTimeout(apply, 500);
+
+      if (tg.onEvent) {
+        tg.onEvent('viewportChanged', apply);
+        tg.onEvent('safeAreaChanged', apply);
+        tg.onEvent('contentSafeAreaChanged', apply);
+        tg.onEvent('fullscreenChanged', apply);
+      }
+
+      window.addEventListener('resize', apply, { passive: true });
+      window.addEventListener('orientationchange', apply, { passive: true });
+    })();
+  </script>
 </body>
 </html>

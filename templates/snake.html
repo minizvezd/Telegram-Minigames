@@ -211,7 +211,7 @@
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
 
-    const gridSize = 20;
+    const gridSize = 25;
     const canvasSize = canvas.width;
     const gridCount = canvasSize / gridSize;
 
@@ -224,7 +224,7 @@
 
     function drawGrid() {
       ctx.save();
-      ctx.strokeStyle = "rgba(255, 255, 255, 0.055)";
+      ctx.strokeStyle = "rgba(255, 255, 255, 0.07)";
       ctx.lineWidth = 1;
       ctx.beginPath();
 
@@ -271,9 +271,9 @@
 
       snake.forEach((segment, index) => {
         const isTail = snake.length > 1 && index === snake.length - 1;
-        const pad = isTail ? 4 : 2;
+        const pad = isTail ? 5 : 3;
         const size = gridSize - pad * 2;
-        const radius = isTail ? 5 : 6;
+        const radius = isTail ? 6 : 8;
 
         drawRoundedRect(
           segment.x * gridSize + pad,

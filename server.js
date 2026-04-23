@@ -389,6 +389,7 @@ const sharedLayoutMarkup = `
     applyLayout();
     setTimeout(applyLayout, 120);
     setTimeout(applyLayout, 400);
+    setTimeout(applyLayout, 900);
 
     if (tg.onEvent) {
       tg.onEvent("viewportChanged", applyLayout);
@@ -398,6 +399,10 @@ const sharedLayoutMarkup = `
     }
 
     window.addEventListener("resize", applyLayout, { passive: true });
+    window.addEventListener("pageshow", applyLayout);
+    window.addEventListener("focus", applyLayout);
+    window.addEventListener("popstate", applyLayout);
+    document.addEventListener("visibilitychange", applyLayout);
   })();
 </script>`;
 

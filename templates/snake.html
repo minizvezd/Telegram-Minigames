@@ -214,6 +214,9 @@
     const gridSize = 40;
     const canvasSize = canvas.width;
     const gridCount = canvasSize / gridSize;
+    const mobileQuery = window.matchMedia("(pointer: coarse), (max-width: 600px)");
+    const desktopSpeed = 200;
+    const mobileSpeed = 230;
 
     let snake = [{ x: 6, y: 6 }];
     let direction = { x: 1, y: 0 };
@@ -222,6 +225,10 @@
     let score = 0;
     let gameInterval = null;
     let isGameOver = false;
+
+    function getGameSpeed() {
+      return mobileQuery.matches ? mobileSpeed : desktopSpeed;
+    }
 
     function drawGrid() {
       ctx.save();
@@ -408,7 +415,7 @@
       isGameOver = false;
       placeFood();
       clearInterval(gameInterval);
-      gameInterval = setInterval(update, 200);
+      gameInterval = setInterval(update, getGameSpeed());
       clearBoard();
       drawSnake();
       drawFood();

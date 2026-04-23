@@ -214,23 +214,14 @@
     const gridSize = 40;
     const canvasSize = canvas.width;
     const gridCount = canvasSize / gridSize;
-    const mobileQuery = window.matchMedia("(pointer: coarse), (max-width: 600px)");
-    const moveIntervalDesktop = 165;
-    const moveIntervalMobile = 125;
 
     let snake = [{ x: 6, y: 6 }];
     let direction = { x: 1, y: 0 };
     let pendingDirection = { x: 1, y: 0 };
     let food = { x: 4, y: 4 };
     let score = 0;
+    let gameInterval = null;
     let isGameOver = false;
-    let animationFrameId = null;
-    let lastMoveTime = 0;
-    let moveAccumulator = 0;
-
-    function getMoveInterval() {
-      return mobileQuery.matches ? moveIntervalMobile : moveIntervalDesktop;
-    }
 
     function drawGrid() {
       ctx.save();
@@ -308,12 +299,6 @@
       ctx.fill();
     }
 
-    function drawGame() {
-      clearBoard();
-      drawSnake();
-      drawFood();
-    }
-
     function isSameCell(a, b) {
       return a.x === b.x && a.y === b.y;
     }
@@ -389,26 +374,9 @@
         snake.pop();
       }
 
-      drawGame();
-    }
-
-    function gameLoop(time = 0) {
-      if (isGameOver) return;
-
-      if (!lastMoveTime) {
-        lastMoveTime = time;
-      }
-
-      const delta = Math.min(time - lastMoveTime, 250);
-      lastMoveTime = time;
-      moveAccumulator += delta;
-
-      while (moveAccumulator >= getMoveInterval() && !isGameOver) {
-        update();
-        moveAccumulator -= getMoveInterval();
-      }
-
-      animationFrameId = requestAnimationFrame(gameLoop);
+      clearBoard();
+      drawSnake();
+      drawFood();
     }
 
     function placeFood() {
@@ -425,7 +393,7 @@
 
     function gameOver() {
       isGameOver = true;
-      cancelAnimationFrame(animationFrameId);
+      clearInterval(gameInterval);
       document.getElementById("finalScore").textContent = score;
       document.getElementById("gameOver").style.display = "block";
     }
@@ -438,12 +406,12 @@
       document.getElementById("scoreValue").textContent = score;
       document.getElementById("gameOver").style.display = "none";
       isGameOver = false;
-      lastMoveTime = 0;
-      moveAccumulator = 0;
       placeFood();
-      cancelAnimationFrame(animationFrameId);
-      drawGame();
-      animationFrameId = requestAnimationFrame(gameLoop);
+      clearInterval(gameInterval);
+      gameInterval = setInterval(update, 200);
+      clearBoard();
+      drawSnake();
+      drawFood();
     }
 
     function handleKeyDown(e) {
@@ -499,6 +467,7 @@
       queueDirection(action);
     }
 
+    window.addEventListener("keydown", handleKeyDown, { passive:false });
     document.addEventListener("keydown", handleKeyDown, { passive:false });
 
     let touchStartX = 0;
@@ -507,7 +476,7 @@
     canvas.addEventListener("touchstart", (e) => {
       touchStartX = e.touches[0].clientX;
       touchStartY = e.touches[0].clientY;
-    }, { passive: true });
+    });
 
     canvas.addEventListener("touchend", (e) => {
       if (isGameOver) return;
@@ -531,7 +500,7 @@
           queueDirection("up");
         }
       }
-    }, { passive: true });
+    });
 
     restartGame();
   </script>

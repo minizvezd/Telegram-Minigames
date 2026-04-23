@@ -397,38 +397,82 @@
       animationFrameId = requestAnimationFrame(update);
     }
 
-    document.addEventListener("keydown", e => {
+    function handleKeyDown(e) {
       if (isGameOver) return;
-      switch (e.key) {
+
+      let action = null;
+      switch (e.code) {
         case "ArrowLeft":
-        case "a":
-        case "A":
+        case "KeyA":
+          action = "left";
+          break;
+        case "ArrowRight":
+        case "KeyD":
+          action = "right";
+          break;
+        case "ArrowDown":
+        case "KeyS":
+          action = "down";
+          break;
+        case "ArrowUp":
+        case "KeyW":
+          action = "up";
+          break;
+      }
+
+      if (!action) {
+        switch (e.key) {
+          case "ArrowLeft":
+          case "a":
+          case "A":
+            action = "left";
+            break;
+          case "ArrowRight":
+          case "d":
+          case "D":
+            action = "right";
+            break;
+          case "ArrowDown":
+          case "s":
+          case "S":
+            action = "down";
+            break;
+          case "ArrowUp":
+          case "w":
+          case "W":
+            action = "up";
+            break;
+        }
+      }
+
+      if (!action) return;
+      e.preventDefault();
+
+      switch (action) {
+        case "left":
           if (!collide(board, currentPiece, currentX - 1, currentY)) {
             currentX--;
           }
           break;
-        case "ArrowRight":
-        case "d":
-        case "D":
+        case "right":
           if (!collide(board, currentPiece, currentX + 1, currentY)) {
             currentX++;
           }
           break;
-        case "ArrowDown":
-        case "s":
-        case "S":
+        case "down":
           drop();
           break;
-        case "ArrowUp":
-        case "w":
-        case "W":
+        case "up":
           let rotated = rotate(currentPiece);
           if (!collide(board, rotated, currentX, currentY)) {
             currentPiece = rotated;
           }
           break;
       }
-    });
+    }
+
+    window.addEventListener("keydown", handleKeyDown, { passive:false });
+    document.addEventListener("keydown", handleKeyDown, { passive:false });
 
     canvas.addEventListener("touchstart", e => {
       let t = e.touches[0];

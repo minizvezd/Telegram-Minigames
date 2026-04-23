@@ -211,9 +211,9 @@
   // === НАСТРОЙКА ИГРЫ: меняй значения здесь ===
   const maxScore = 5;
   const serveCountdownStepMs = 260; // скорость отсчёта 3-2-1
-  const ballBaseSpeed = 2; // стартовая скорость мяча
-  const ballSpeedIncrease = 1.055; // ускорение после каждого отскока
-  const maxBallSpeed = 7.2; // максимальная скорость мяча
+  const ballBaseSpeed = 3; // стартовая скорость мяча
+  const ballSpeedIncrease = 1.06; // ускорение после каждого отскока
+  const maxBallSpeed = 9.2; // максимальная скорость мяча
   const maxBounceAngle = Math.PI / 3; // максимальный угол отскока (60°)
   const aiBaseSpeed = 1.7; // скорость бота, когда мяч не летит к нему
   const aiTrackSpeed = 2.55; // скорость бота, когда мяч летит к нему
@@ -237,7 +237,7 @@
   let lastFrameTime = 0;
 
   function getMobileSpeedMultiplier() {
-    return mobileQuery.matches ? 1.28 : 1;
+    return mobileQuery.matches ? 1.15 : 1;
   }
 
   function getFrameScale(time) {

@@ -201,7 +201,20 @@
   let leftScore = 0;
   let rightScore = 0;
   let isGameOver = false;
+  let isRoundPaused = false;
   const maxScore = 5;
+  const goalPauseMs = 850;
+  const ballBaseSpeed = 2.2;
+  const ballSpeedIncrease = 1.04;
+  const maxBallSpeed = 6.2;
+  const aiBaseSpeed = 1.7;
+  const aiTrackSpeed = 2.55;
+  const aiReactionMs = 125;
+  const aiMistakePx = 22;
+  const aiDeadZone = 7;
+  let aiTargetY = 0;
+  let aiLastRetargetAt = 0;
+  let roundResumeTimer = null;
   let animationFrameId;
   let isPointerDown = false;
 
@@ -211,57 +224,120 @@
     leftScore = 0;
     rightScore = 0;
     isGameOver = false;
-    resetBall();
+    isRoundPaused = false;
+    clearTimeout(roundResumeTimer);
+    roundResumeTimer = null;
+    aiTargetY = canvas.height / 2 - paddleHeight / 2;
+    aiLastRetargetAt = 0;
+    resetBall(Math.random() > 0.5 ? 1 : -1);
   }
 
-  function resetBall() {
+  function placeBallAtCenter() {
     ballX = canvas.width / 2;
     ballY = canvas.height / 2;
-    ballSpeedX = 2 * (Math.random() > 0.5 ? 1 : -1);
-    ballSpeedY = 2 * (Math.random() > 0.5 ? 1 : -1);
+    ballSpeedX = 0;
+    ballSpeedY = 0;
+  }
+
+  function resetBall(direction = (Math.random() > 0.5 ? 1 : -1)) {
+    ballX = canvas.width / 2;
+    ballY = canvas.height / 2;
+
+    const angle = Math.random() * 1.2 - 0.6;
+    ballSpeedX = ballBaseSpeed * direction;
+    ballSpeedY = ballBaseSpeed * angle;
+  }
+
+  function clampBallSpeed() {
+    if (Math.abs(ballSpeedX) > maxBallSpeed) {
+      ballSpeedX = Math.sign(ballSpeedX) * maxBallSpeed;
+    }
+    if (Math.abs(ballSpeedY) > maxBallSpeed) {
+      ballSpeedY = Math.sign(ballSpeedY) * maxBallSpeed;
+    }
+  }
+
+  function handleGoal(scoredBy) {
+    if (scoredBy === "left") {
+      leftScore++;
+    } else {
+      rightScore++;
+    }
+
+    checkScore();
+    if (isGameOver) return;
+
+    isRoundPaused = true;
+    placeBallAtCenter();
+    aiTargetY = canvas.height / 2 - paddleHeight / 2;
+
+    clearTimeout(roundResumeTimer);
+    roundResumeTimer = setTimeout(() => {
+      isRoundPaused = false;
+      aiLastRetargetAt = 0;
+      resetBall(Math.random() > 0.5 ? 1 : -1);
+    }, goalPauseMs);
+  }
+
+  function updateAi() {
+    const now = performance.now();
+    const ballGoingToAi = ballSpeedX > 0 && ballX > canvas.width * 0.35;
+    const idleY = canvas.height / 2 - paddleHeight / 2;
+    const targetBaseY = ballGoingToAi ? ballY - paddleHeight / 2 : idleY;
+    const mistakeRange = ballGoingToAi ? aiMistakePx : aiMistakePx * 1.35;
+
+    if (now - aiLastRetargetAt >= aiReactionMs) {
+      aiLastRetargetAt = now;
+      aiTargetY = targetBaseY + (Math.random() * mistakeRange - mistakeRange / 2);
+    }
+
+    if (aiTargetY < 0) aiTargetY = 0;
+    if (aiTargetY > canvas.height - paddleHeight) aiTargetY = canvas.height - paddleHeight;
+
+    const step = ballGoingToAi ? aiTrackSpeed : aiBaseSpeed;
+    const delta = aiTargetY - rightPaddleY;
+
+    if (Math.abs(delta) > aiDeadZone) {
+      rightPaddleY += Math.sign(delta) * Math.min(Math.abs(delta), step);
+    }
+
+    if (rightPaddleY < 0) rightPaddleY = 0;
+    if (rightPaddleY > canvas.height - paddleHeight) rightPaddleY = canvas.height - paddleHeight;
   }
 
   function update() {
     if (isGameOver) return;
 
-    ballX += ballSpeedX;
-    ballY += ballSpeedY;
+    if (!isRoundPaused) {
+      ballX += ballSpeedX;
+      ballY += ballSpeedY;
 
-    if (ballY - ballSize < 0 || ballY + ballSize > canvas.height) {
-      ballSpeedY = -ballSpeedY;
-    }
-
-    if (ballX - ballSize < paddleWidth) {
-      if (ballY > leftPaddleY && ballY < leftPaddleY + paddleHeight) {
-        ballSpeedX = -ballSpeedX;
-        ballSpeedX *= 1.05;
-        ballSpeedY *= 1.05;
-      } else {
-        rightScore++;
-        checkScore();
-        resetBall();
+      if (ballY - ballSize < 0 || ballY + ballSize > canvas.height) {
+        ballSpeedY = -ballSpeedY;
       }
-    }
 
-    const center = rightPaddleY + paddleHeight / 2;
-    if (center < ballY) {
-      rightPaddleY += 3;
-    } else {
-      rightPaddleY -= 3;
-    }
+      if (ballX - ballSize < paddleWidth) {
+        if (ballY > leftPaddleY && ballY < leftPaddleY + paddleHeight) {
+          ballX = paddleWidth + ballSize;
+          ballSpeedX = Math.abs(ballSpeedX) * ballSpeedIncrease;
+          ballSpeedY *= ballSpeedIncrease;
+          clampBallSpeed();
+        } else {
+          handleGoal("right");
+        }
+      }
 
-    if (rightPaddleY < 0) rightPaddleY = 0;
-    if (rightPaddleY > canvas.height - paddleHeight) rightPaddleY = canvas.height - paddleHeight;
+      updateAi();
 
-    if (ballX + ballSize > canvas.width - paddleWidth) {
-      if (ballY > rightPaddleY && ballY < rightPaddleY + paddleHeight) {
-        ballSpeedX = -ballSpeedX;
-        ballSpeedX *= 1.05;
-        ballSpeedY *= 1.05;
-      } else {
-        leftScore++;
-        checkScore();
-        resetBall();
+      if (ballX + ballSize > canvas.width - paddleWidth) {
+        if (ballY > rightPaddleY && ballY < rightPaddleY + paddleHeight) {
+          ballX = canvas.width - paddleWidth - ballSize;
+          ballSpeedX = -Math.abs(ballSpeedX) * ballSpeedIncrease;
+          ballSpeedY *= ballSpeedIncrease;
+          clampBallSpeed();
+        } else {
+          handleGoal("left");
+        }
       }
     }
 
@@ -294,14 +370,26 @@
     ctx.lineTo(canvas.width / 2, canvas.height);
     ctx.stroke();
 
+    if (isRoundPaused && !isGameOver) {
+      ctx.fillStyle = "rgba(0, 0, 0, 0.45)";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = "#fff";
+      ctx.font = "bold 26px sans-serif";
+      ctx.textAlign = "center";
+      ctx.fillText("Следующая подача...", canvas.width / 2, canvas.height / 2);
+    }
+
     document.getElementById("score").textContent = `${leftScore} : ${rightScore}`;
   }
 
   function restartGame() {
     document.getElementById("gameOver").style.display = "none";
+    clearTimeout(roundResumeTimer);
+    roundResumeTimer = null;
     initGame();
     cancelAnimationFrame(animationFrameId);
-    requestAnimationFrame(update);
+    animationFrameId = requestAnimationFrame(update);
   }
 
   function getCanvasPointerPosition(e) {
